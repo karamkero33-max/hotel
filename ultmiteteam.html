@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ultimate Team FC 2026 - لعبة كرة القدم الكاملة</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Google Fonts: Cairo -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+
+  <!-- React & ReactDOM UMD -->
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+
+  <!-- Babel Standalone for JSX in browser -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <!-- Canvas Confetti CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.4/dist/confetti.browser.min.js"></script>
+
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <style>
+    body {
+      font-family: 'Cairo', system-ui, -apple-system, sans-serif;
+      background-color: #080808;
+      color: #ffffff;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #121212;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #333333;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #d97706;
+    }
+
+    @keyframes slowPulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.85; transform: scale(0.98); }
+    }
+    .animate-pulse-slow {
+      animation: slowPulse 3s infinite ease-in-out;
+    }
+  </style>
+</head>
+<body class="bg-neutral-950 text-white min-h-screen selection:bg-amber-400 selection:text-neutral-950">
+  <div id="root"></div>
+
+  <!-- MAIN APPLICATION JAVASCRIPT / JSX -->
+  <script type="text/babel">
+    const { useState, useEffect, useRef } = React;
+
+    // --- 1. SOUND EFFECTS SYNTHESIZER (Web Audio API) ---
+    class SoundManager {
+      constructor() {
+        this.ctx = null;
+        this.enabled = true;
+      }
+      init() {
+        if (!this.ctx) {
+          const AudioCtx = window.AudioContext || window.webkitAudioContext;
+          if (AudioCtx) this.ctx = new AudioCtx();
+        }
+        if (this.ctx && this.ctx.state === 'suspended') {
+          this.ctx.resume();
+        }
+      }
+      playTap() {
+        if (!this.enabled) return;
+        try {
+          this.init();
+          if (!this.ctx) return;
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(440, this.ctx.currentTime);
+          osc.frequency.exponentialRampToValueAtTime(880, this.ctx.currentTime + 0.05);
+          gain.gain.setValueAtTime(0.08, this.ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.05);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start();
+          osc.stop(this.ctx.currentTime + 0.05);
+        } catch (e) {}
+      }
+      playCoinChime() {
+        if (!this.enabled) return;
+        try {
+          this.init();
+          if (!this.ctx) return;
+          const now = this.ctx.currentTime;
+          [523.25, 659.25, 783.99, 1046.50].forEach((freq, idx) => {
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(freq, now + idx * 0.06);
+            gain.gain.setValueAtTime(0.12, now + idx * 0.06);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.06 + 0.2);
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.start(now + idx * 0.06);
+            osc.stop(now + idx * 0.06 + 0.2);
+          });
+        } catch (e) {}
+      }
+      playPackOpenBoom() {
+        if (!this.enabled) return;
+        try {
+          this.init();
+          if (!this.ctx) return;
+          const now = this.ctx.currentTime;
+          const subOsc = this.ctx.createOscillator();
+          const subGain = this.ctx.createGain();
+          subOsc.type = 'sine';
+          subOsc.frequency.setValueAtTime(150, now);
+          subOsc.frequency.exponentialRampToValueAtTime(30, now + 0.8);
+          subGain.gain.setValueAtTime(0.3, now);
+          subGain.gain.exponentialRampToValueAtTime(0.001, now + 0.8);
+          subOsc.connect(subGain);
+          subGain.connect(this.ctx.destination);
+          subOsc.start(now);
+          subOsc.stop(now + 0.8);
+        } catch (e) {}
+      }
+      playIconFanfare() {
+        if (!this.enabled) return;
+        try {
+          this.init();
+          if (!this.ctx) return;
+          const now = this.ctx.currentTime;
+          const chords = [
+            [261.63, 329.63, 392.00],
+            [349.23, 440.00, 523.25],
+            [392.00, 493.88, 587.33],
+            [523.25, 659.25, 783.99, 1046.50]
+          ];
+          chords.forEach((chord, cIdx) => {
+            const startTime = now + cIdx * 0.25;
+            const duration = cIdx === chords.length - 1 ? 1.2 : 0.22;
+            chord.forEach((freq) => {
+              const osc = this.ctx.createOscillator();
+              const gain = this.ctx.createGain();
+              osc.type = 'triangle';
+              osc.frequency.setValueAtTime(freq, startTime);
+              gain.gain.setValueAtTime(0.15, startTime);
+              gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
+              osc.connect(gain);
+              gain.connect(this.ctx.destination);
+              osc.start(startTime);
+              osc.stop(startTime + duration);
+            });
+          });
+        } catch (e) {}
+      }
+      playCardFlip() {
+        if (!this.enabled) return;
+        try {
+          this.init();
+          if (!this.ctx) return;
+          const now = this.ctx.currentTime;
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(300, now);
+          osc.frequency.exponentialRampToValueAtTime(1200, now + 0.12);
+          gain.gain.setValueAtTime(0.15, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(now);
+          osc.stop(now + 0.12);
+        } catch (e) {}
+      }
+    }
+    const soundFx = new SoundManager();
+
+    // --- 2. PLAYERS DATABASE ---
+    const PLAYERS_DATABASE = [
+      { id: 'pele-icon', name: 'Pelé', arabicName: 'بيلي', rating: 99, position: 'ST', nation: 'Brazil', flagEmoji: '🇧🇷', club: 'Santos FC', photoUrl: 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=300&q=80', tier: 'Ultimate', stats: { pac: 97, sho: 98, pas: 95, dri: 98, def: 60, phy: 88 } },
+      { id: 'messi-ultimate', name: 'Lionel Messi', arabicName: 'ليونيل ميسي', rating: 99, position: 'RW', nation: 'Argentina', flagEmoji: '🇦🇷', club: 'Inter Miami', photoUrl: 'https://images.unsplash.com/photo-1518091043644-c1d4457512c6?auto=format&fit=crop&w=300&q=80', tier: 'Ultimate', stats: { pac: 94, sho: 98, pas: 99, dri: 99, def: 42, phy: 80 } },
+      { id: 'ronaldo-ultimate', name: 'Cristiano Ronaldo', arabicName: 'كريستيانو رونالدو', rating: 99, position: 'ST', nation: 'Portugal', flagEmoji: '🇵🇹', club: 'Al Nassr', photoUrl: 'https://images.unsplash.com/photo-1543326727-cf6c39e8f84c?auto=format&fit=crop&w=300&q=80', tier: 'Ultimate', stats: { pac: 96, sho: 99, pas: 89, dri: 95, def: 45, phy: 94 } },
+      { id: 'maradona-icon', name: 'Diego Maradona', arabicName: 'دييغو مارادونا', rating: 98, position: 'CAM', nation: 'Argentina', flagEmoji: '🇦🇷', club: 'Napoli', photoUrl: 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&w=300&q=80', tier: 'Icon', stats: { pac: 92, sho: 95, pas: 96, dri: 98, def: 45, phy: 82 } },
+      { id: 'ronaldo-nazario-icon', name: 'Ronaldo Nazário', arabicName: 'رونالدو الظاهرة', rating: 98, position: 'ST', nation: 'Brazil', flagEmoji: '🇧🇷', club: 'Real Madrid', photoUrl: 'https://images.unsplash.com/photo-1517466787929-bc90951d0974?auto=format&fit=crop&w=300&q=80', tier: 'Icon', stats: { pac: 97, sho: 96, pas: 85, dri: 96, def: 40, phy: 87 } },
+      { id: 'zidane-icon', name: 'Zinedine Zidane', arabicName: 'زين الدين زيدان', rating: 97, position: 'CAM', nation: 'France', flagEmoji: '🇫🇷', club: 'Real Madrid', photoUrl: 'https://images.unsplash.com/photo-1522778119026-d647f0596c20?auto=format&fit=crop&w=300&q=80', tier: 'Icon', stats: { pac: 85, sho: 92, pas: 97, dri: 96, def: 75, phy: 86 } },
+      { id: 'ronaldinho-icon', name: 'Ronaldinho', arabicName: 'رونالدينيو', rating: 97, position: 'LW', nation: 'Brazil', flagEmoji: '🇧🇷', club: 'FC Barcelona', photoUrl: 'https://images.unsplash.com/photo-1511886929837-354d827aae26?auto=format&fit=crop&w=300&q=80', tier: 'Icon', stats: { pac: 93, sho: 90, pas: 93, dri: 98, def: 40, phy: 81 } },
+      { id: 'cruyff-icon', name: 'Johan Cruyff', arabicName: 'يوهان كرويف', rating: 97, position: 'CF', nation: 'Netherlands', flagEmoji: '🇳🇱', club: 'Ajax', photoUrl: 'https://images.unsplash.com/photo-1489944440615-453fc2b6a9a9?auto=format&fit=crop&w=300&q=80', tier: 'Icon', stats: { pac: 92, sho: 93, pas: 93, dri: 96, def: 48, phy: 78 } },
+      { id: 'maldini-icon', name: 'Paolo Maldini', arabicName: 'باولو مالديني', rating: 96, position: 'CB', nation: 'Italy', flagEmoji: '🇮🇹', club: 'AC Milan', photoUrl: 'https://images.unsplash.com/photo-1579952363873-27f3bade9f55?auto=format&fit=crop&w=300&q=80', tier: 'Icon', stats: { pac: 87, sho: 58, pas: 78, dri: 72, def: 98, phy: 89 } },
+      { id: 'yashin-icon', name: 'Lev Yashin', arabicName: 'ليف ياشين', rating: 96, position: 'GK', nation: 'Russia', flagEmoji: '🇷🇺', club: 'Dynamo Moscow', photoUrl: 'https://images.unsplash.com/photo-1529900748604-07564a03e7a6?auto=format&fit=crop&w=300&q=80', tier: 'Icon', stats: { pac: 94, sho: 93, pas: 80, dri: 96, def: 65, phy: 95 } },
+      { id: 'mbappe-epic', name: 'Kylian Mbappé', arabicName: 'كيليان إمبابي', rating: 96, position: 'ST', nation: 'France', flagEmoji: '🇫🇷', club: 'Real Madrid', photoUrl: 'https://images.unsplash.com/photo-1560272564-c83b66b1ad12?auto=format&fit=crop&w=300&q=80', tier: 'Epic', stats: { pac: 99, sho: 94, pas: 85, dri: 95, def: 38, phy: 82 } },
+      { id: 'haaland-epic', name: 'Erling Haaland', arabicName: 'إيرلينغ هالاند', rating: 95, position: 'ST', nation: 'Norway', flagEmoji: '🇳🇴', club: 'Manchester City', photoUrl: 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=300&q=80', tier: 'Epic', stats: { pac: 92, sho: 97, pas: 72, dri: 84, def: 46, phy: 93 } },
+      { id: 'vinicius-epic', name: 'Vinícius Jr.', arabicName: 'فينيسيوس جونيور', rating: 95, position: 'LW', nation: 'Brazil', flagEmoji: '🇧🇷', club: 'Real Madrid', photoUrl: 'https://images.unsplash.com/photo-1517466787929-bc90951d0974?auto=format&fit=crop&w=300&q=80', tier: 'Epic', stats: { pac: 98, sho: 89, pas: 86, dri: 96, def: 33, phy: 74 } },
+      { id: 'salah-special', name: 'Mohamed Salah', arabicName: 'محمد صلاح', rating: 94, position: 'RW', nation: 'Egypt', flagEmoji: '🇪🇬', club: 'Liverpool', photoUrl: 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=300&q=80', tier: 'Special', stats: { pac: 93, sho: 93, pas: 88, dri: 93, def: 45, phy: 78 } },
+      { id: 'bellingham-special', name: 'Jude Bellingham', arabicName: 'جود بيلينجهام', rating: 93, position: 'CAM', nation: 'England', flagEmoji: '🏴󠁧󠁢󠁥󠁮󠁧󠁿', club: 'Real Madrid', photoUrl: 'https://images.unsplash.com/photo-1517466787929-bc90951d0974?auto=format&fit=crop&w=300&q=80', tier: 'Special', stats: { pac: 85, sho: 88, pas: 89, dri: 91, def: 83, phy: 88 } },
+      { id: 'debruyne-special', name: 'Kevin De Bruyne', arabicName: 'كيفين دي بروين', rating: 93, position: 'CM', nation: 'Belgium', flagEmoji: '🇧🇪', club: 'Manchester City', photoUrl: 'https://images.unsplash.com/photo-1522778119026-d647f0596c20?auto=format&fit=crop&w=300&q=80', tier: 'Special', stats: { pac: 75, sho: 89, pas: 96, dri: 88, def: 65, phy: 79 } },
+      { id: 'rodri-special', name: 'Rodri', arabicName: 'رودري', rating: 92, position: 'CDM', nation: 'Spain', flagEmoji: '🇪🇸', club: 'Manchester City', photoUrl: 'https://images.unsplash.com/photo-1579952363873-27f3bade9f55?auto=format&fit=crop&w=300&q=80', tier: 'Special', stats: { pac: 72, sho: 80, pas: 87, dri: 83, def: 90, phy: 89 } },
+      { id: 'kane-special', name: 'Harry Kane', arabicName: 'هاري كين', rating: 92, position: 'ST', nation: 'England', flagEmoji: '🏴󠁧󠁢󠁥󠁮󠁧󠁿', club: 'Bayern Munich', photoUrl: 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=300&q=80', tier: 'Special', stats: { pac: 74, sho: 95, pas: 86, dri: 84, def: 48, phy: 85 } },
+      { id: 'yamal-special', name: 'Lamine Yamal', arabicName: 'لامين يامال', rating: 91, position: 'RW', nation: 'Spain', flagEmoji: '🇪🇸', club: 'FC Barcelona', photoUrl: 'https://images.unsplash.com/photo-1518091043644-c1d4457512c6?auto=format&fit=crop&w=300&q=80', tier: 'Special', stats: { pac: 92, sho: 84, pas: 88, dri: 94, def: 35, phy: 68 } },
+      { id: 'neymar-special', name: 'Neymar Jr.', arabicName: 'نييمار جونيور', rating: 91, position: 'LW', nation: 'Brazil', flagEmoji: '🇧🇷', club: 'Al Hilal', photoUrl: 'https://images.unsplash.com/photo-1511886929837-354d827aae26?auto=format&fit=crop&w=300&q=80', tier: 'Special', stats: { pac: 89, sho: 85, pas: 88, dri: 95, def: 37, phy: 62 } },
+      { id: 'vandijk-special', name: 'Virgil van Dijk', arabicName: 'فيرجيل فان دايك', rating: 92, position: 'CB', nation: 'Netherlands', flagEmoji: '🇳🇱', club: 'Liverpool', photoUrl: 'https://images.unsplash.com/photo-1579952363873-27f3bade9f55?auto=format&fit=crop&w=300&q=80', tier: 'Special', stats: { pac: 80, sho: 60, pas: 75, dri: 72, def: 93, phy: 89 } },
+      { id: 'courtois-special', name: 'Thibaut Courtois', arabicName: 'تيبو كورتوا', rating: 91, position: 'GK', nation: 'Belgium', flagEmoji: '🇧🇪', club: 'Real Madrid', photoUrl: 'https://images.unsplash.com/photo-1529900748604-07564a03e7a6?auto=format&fit=crop&w=300&q=80', tier: 'Special', stats: { pac: 88, sho: 89, pas: 76, dri: 90, def: 48, phy: 91 } },
+      { id: 'lewandowski-rare', name: 'Robert Lewandowski', arabicName: 'روبرت ليفاندوفسكي', rating: 89, position: 'ST', nation: 'Poland', flagEmoji: '🇵🇱', club: 'FC Barcelona', photoUrl: 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=300&q=80', tier: 'Rare Gold', stats: { pac: 76, sho: 91, pas: 79, dri: 84, def: 44, phy: 82 } },
+      { id: 'alisson-rare', name: 'Alisson Becker', arabicName: 'أليسون بيكر', rating: 89, position: 'GK', nation: 'Brazil', flagEmoji: '🇧🇷', club: 'Liverpool', photoUrl: 'https://images.unsplash.com/photo-1529900748604-07564a03e7a6?auto=format&fit=crop&w=300&q=80', tier: 'Rare Gold', stats: { pac: 86, sho: 85, pas: 85, dri: 89, def: 52, phy: 90 } },
+      { id: 'donnarumma-rare', name: 'Gianluigi Donnarumma', arabicName: 'جانلويجي دوناروما', rating: 88, position: 'GK', nation: 'Italy', flagEmoji: '🇮🇹', club: 'PSG', photoUrl: 'https://images.unsplash.com/photo-1529900748604-07564a03e7a6?auto=format&fit=crop&w=300&q=80', tier: 'Rare Gold', stats: { pac: 89, sho: 84, pas: 76, dri: 89, def: 50, phy: 91 } },
+      { id: 'valverde-rare', name: 'Federico Valverde', arabicName: 'فيديريكو فالفيردي', rating: 88, position: 'CM', nation: 'Uruguay', flagEmoji: '🇺🇾', club: 'Real Madrid', photoUrl: 'https://images.unsplash.com/photo-1522778119026-d647f0596c20?auto=format&fit=crop&w=300&q=80', tier: 'Rare Gold', stats: { pac: 89, sho: 83, pas: 84, dri: 85, def: 81, phy: 85 } },
+      { id: 'modric-rare', name: 'Luka Modrić', arabicName: 'لوكا مودريتش', rating: 87, position: 'CM', nation: 'Croatia', flagEmoji: '🇭🇷', club: 'Real Madrid', photoUrl: 'https://images.unsplash.com/photo-1522778119026-d647f0596c20?auto=format&fit=crop&w=300&q=80', tier: 'Rare Gold', stats: { pac: 72, sho: 76, pas: 89, dri: 88, def: 72, phy: 66 } },
+      { id: 'saliba-rare', name: 'William Saliba', arabicName: 'ويليام ساليبا', rating: 87, position: 'CB', nation: 'France', flagEmoji: '🇫🇷', club: 'Arsenal', photoUrl: 'https://images.unsplash.com/photo-1579952363873-27f3bade9f55?auto=format&fit=crop&w=300&q=80', tier: 'Rare Gold', stats: { pac: 82, sho: 40, pas: 72, dri: 75, def: 88, phy: 84 } },
+      { id: 'theo-rare', name: 'Theo Hernández', arabicName: 'ثيو هيرنانديز', rating: 86, position: 'LB', nation: 'France', flagEmoji: '🇫🇷', club: 'AC Milan', photoUrl: 'https://images.unsplash.com/photo-1579952363873-27f3bade9f55?auto=format&fit=crop&w=300&q=80', tier: 'Rare Gold', stats: { pac: 93, sho: 72, pas: 78, dri: 82, def: 80, phy: 84 } },
+      { id: 'pedri-rare', name: 'Pedri', arabicName: 'بيدري', rating: 86, position: 'CM', nation: 'Spain', flagEmoji: '🇪🇸', club: 'FC Barcelona', photoUrl: 'https://images.unsplash.com/photo-1522778119026-d647f0596c20?auto=format&fit=crop&w=300&q=80', tier: 'Rare Gold', stats: { pac: 78, sho: 70, pas: 86, dri: 89, def: 68, phy: 64 } },
+      { id: 'hakimi-gold', name: 'Achraf Hakimi', arabicName: 'أشرف حكيمي', rating: 85, position: 'RB', nation: 'Morocco', flagEmoji: '🇲🇦', club: 'PSG', photoUrl: 'https://images.unsplash.com/photo-1579952363873-27f3bade9f55?auto=format&fit=crop&w=300&q=80', tier: 'Gold', stats: { pac: 92, sho: 76, pas: 80, dri: 83, def: 77, phy: 78 } },
+      { id: 'palmer-gold', name: 'Cole Palmer', arabicName: 'كول بالمر', rating: 85, position: 'CAM', nation: 'England', flagEmoji: '🏴󠁧󠁢󠁥󠁮󠁧󠁿', club: 'Chelsea', photoUrl: 'https://images.unsplash.com/photo-1518091043644-c1d4457512c6?auto=format&fit=crop&w=300&q=80', tier: 'Gold', stats: { pac: 80, sho: 84, pas: 85, dri: 86, def: 45, phy: 68 } },
+      { id: 'endrick-silver', name: 'Endrick', arabicName: 'إندريك', rating: 78, position: 'ST', nation: 'Brazil', flagEmoji: '🇧🇷', club: 'Real Madrid', photoUrl: 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=300&q=80', tier: 'Silver', stats: { pac: 87, sho: 79, pas: 68, dri: 81, def: 32, phy: 75 } },
+      { id: 'mainoo-silver', name: 'Kobbie Mainoo', arabicName: 'كوبي ماينو', rating: 78, position: 'CM', nation: 'England', flagEmoji: '🏴󠁧󠁢󠁥󠁮󠁧󠁿', club: 'Manchester United', photoUrl: 'https://images.unsplash.com/photo-1522778119026-d647f0596c20?auto=format&fit=crop&w=300&q=80', tier: 'Silver', stats: { pac: 76, sho: 70, pas: 79, dri: 82, def: 74, phy: 73 } },
+      { id: 'cubarsi-silver', name: 'Pau Cubarsí', arabicName: 'باو كوبارسي', rating: 77, position: 'CB', nation: 'Spain', flagEmoji: '🇪🇸', club: 'FC Barcelona', photoUrl: 'https://images.unsplash.com/photo-1579952363873-27f3bade9f55?auto=format&fit=crop&w=300&q=80', tier: 'Silver', stats: { pac: 72, sho: 38, pas: 78, dri: 74, def: 80, phy: 72 } },
+      { id: 'guler-silver', name: 'Arda Güler', arabicName: 'أردا جولر', rating: 78, position: 'CAM', nation: 'Turkey', flagEmoji: '🇹🇷', club: 'Real Madrid', photoUrl: 'https://images.unsplash.com/photo-1518091043644-c1d4457512c6?auto=format&fit=crop&w=300&q=80', tier: 'Silver', stats: { pac: 77, sho: 75, pas: 80, dri: 83, def: 42, phy: 58 } },
+      { id: 'youngster1-bronze', name: 'Sami Al-Najei', arabicName: 'سامي النجعي', rating: 68, position: 'CAM', nation: 'Saudi Arabia', flagEmoji: '🇸🇦', club: 'Al Nassr', photoUrl: 'https://images.unsplash.com/photo-1518091043644-c1d4457512c6?auto=format&fit=crop&w=300&q=80', tier: 'Bronze', stats: { pac: 74, sho: 64, pas: 68, dri: 71, def: 48, phy: 60 } }
+    ];
+
+    // --- 3. PACKS DATABASE ---
+    const PACKS_DATABASE = [
+      { id: 'bronze-pack', name: 'Bronze Pack', arabicName: 'باك برونزي 🟤', price: 2500, cardCount: 3, badge: '🟤 BRONZE', color: '#8C6239', bgGradient: 'from-amber-900 via-amber-950 to-neutral-900', arabicDescription: 'يحتوي على 3 لاعبين مع احتمال ظهور لاعبين برونزي وفضي.', probabilities: { Bronze: 75, Silver: 20, Gold: 5 } },
+      { id: 'silver-pack', name: 'Silver Pack', arabicName: 'باك فضي ⚪', price: 5000, cardCount: 4, badge: '⚪ SILVER', color: '#A0AAB2', bgGradient: 'from-slate-700 via-slate-900 to-neutral-950', arabicDescription: '4 كروت لاعبين مع فرصة أعلى لظهور لاعبين فضيين وذهبيين.', probabilities: { Silver: 70, Gold: 25, 'Rare Gold': 5 } },
+      { id: 'gold-pack', name: 'Gold Pack', arabicName: 'باك ذهبي 🟡', price: 15000, cardCount: 5, badge: '🟡 GOLD', color: '#D4AF37', bgGradient: 'from-yellow-700 via-amber-900 to-black', arabicDescription: '5 كروت لاعبين! فرص عالية للذهبي والـ Rare Gold والـ Special.', probabilities: { Gold: 65, 'Rare Gold': 25, Special: 8, Epic: 2 } },
+      { id: 'premium-gold-pack', name: 'Premium Gold Pack', arabicName: 'بريميوم جولد 🔵', price: 35000, cardCount: 6, badge: '🔵 PREMIUM', color: '#3B82F6', bgGradient: 'from-blue-900 via-indigo-950 to-slate-950', arabicDescription: '6 كروت مليئة باللاعبين النادرين والـ Special ونسبة ظهور أسطورة Icon!', probabilities: { Gold: 45, 'Rare Gold': 35, Special: 15, Epic: 4, Icon: 1 } },
+      { id: 'rare-pack', name: 'Rare Pack', arabicName: 'باك نادِر 🟣', price: 60000, cardCount: 6, badge: '🟣 RARE', color: '#A855F7', bgGradient: 'from-purple-900 via-purple-950 to-neutral-950', arabicDescription: 'كروت عالية الفئة فقط! احتمالات ممتازة للـ Special و Epic و Icons.', probabilities: { 'Rare Gold': 50, Special: 30, Epic: 15, Icon: 4, Ultimate: 1 } },
+      { id: 'mega-pack', name: 'Mega Pack', arabicName: 'ميجا باك 🔴', price: 100000, cardCount: 8, badge: '🔴 MEGA', color: '#EF4444', bgGradient: 'from-rose-900 via-red-950 to-black', arabicDescription: 'فتح 8 كروت ضخمة! مليء بنجوم Epic والأسطورة Icons.', probabilities: { 'Rare Gold': 40, Special: 32, Epic: 20, Icon: 6, Ultimate: 2 } },
+      { id: 'ultimate-pack', name: 'Ultimate Pack', arabicName: 'أولتيمايت باك 🌟', price: 200000, cardCount: 10, badge: '🌟 ULTIMATE', color: '#F59E0B', bgGradient: 'from-amber-600 via-purple-900 to-indigo-950', arabicDescription: 'قمة الباكات! 10 كروت فاخرة مع أعلى نسبة لظهور كروت الـ Ultimate والـ Icons!', probabilities: { 'Rare Gold': 25, Special: 35, Epic: 22, Icon: 12, Ultimate: 6 } }
+    ];
+
+    // --- 4. FORMATIONS DATABASE ---
+    const FORMATIONS = [
+      {
+        id: '4-3-3',
+        name: '4-3-3',
+        slots: [
+          { id: 'gk', position: 'GK', top: 86, left: 50 },
+          { id: 'lb', position: 'LB', top: 68, left: 16 },
+          { id: 'cb1', position: 'CB', top: 70, left: 38 },
+          { id: 'cb2', position: 'CB', top: 70, left: 62 },
+          { id: 'rb', position: 'RB', top: 68, left: 84 },
+          { id: 'cm1', position: 'CM', top: 48, left: 28 },
+          { id: 'cdm', position: 'CDM', top: 50, left: 50 },
+          { id: 'cm2', position: 'CM', top: 48, left: 72 },
+          { id: 'lw', position: 'LW', top: 22, left: 20 },
+          { id: 'st', position: 'ST', top: 18, left: 50 },
+          { id: 'rw', position: 'RW', top: 22, left: 80 },
+        ]
+      },
+      {
+        id: '4-2-3-1',
+        name: '4-2-3-1',
+        slots: [
+          { id: 'gk', position: 'GK', top: 86, left: 50 },
+          { id: 'lb', position: 'LB', top: 68, left: 16 },
+          { id: 'cb1', position: 'CB', top: 70, left: 38 },
+          { id: 'cb2', position: 'CB', top: 70, left: 62 },
+          { id: 'rb', position: 'RB', top: 68, left: 84 },
+          { id: 'cdm1', position: 'CDM', top: 54, left: 36 },
+          { id: 'cdm2', position: 'CDM', top: 54, left: 64 },
+          { id: 'lm', position: 'LM', top: 34, left: 20 },
+          { id: 'cam', position: 'CAM', top: 36, left: 50 },
+          { id: 'rm', position: 'RM', top: 34, left: 80 },
+          { id: 'st', position: 'ST', top: 18, left: 50 },
+        ]
+      },
+      {
+        id: '4-4-2',
+        name: '4-4-2',
+        slots: [
+          { id: 'gk', position: 'GK', top: 86, left: 50 },
+          { id: 'lb', position: 'LB', top: 68, left: 16 },
+          { id: 'cb1', position: 'CB', top: 70, left: 38 },
+          { id: 'cb2', position: 'CB', top: 70, left: 62 },
+          { id: 'rb', position: 'RB', top: 68, left: 84 },
+          { id: 'lm', position: 'LM', top: 46, left: 18 },
+          { id: 'cm1', position: 'CM', top: 48, left: 38 },
+          { id: 'cm2', position: 'CM', top: 48, left: 62 },
+          { id: 'rm', position: 'RM', top: 46, left: 82 },
+          { id: 'st1', position: 'ST', top: 20, left: 38 },
+          { id: 'st2', position: 'ST', top: 20, left: 62 },
+        ]
+      }
+    ];
+
+    // --- 5. PLAYER CARD COMPONENT ---
+    function PlayerCard({ player, size = 'md', onClick, showNewBadge = false, selected = false }) {
+      const sizeClasses = {
+        sm: 'w-24 h-36 text-[9px] rounded-lg border',
+        md: 'w-36 h-56 text-[11px] rounded-xl border-2',
+        lg: 'w-48 h-72 text-xs rounded-2xl border-2',
+        xl: 'w-64 h-96 text-sm rounded-3xl border-4',
+      }[size];
+
+      const getTierTheme = () => {
+        switch (player.tier) {
+          case 'Bronze': return { bg: 'bg-gradient-to-b from-amber-800 via-amber-900 to-amber-950 text-amber-100 border-amber-600/60', header: 'bg-amber-950/80 border-amber-600/40' };
+          case 'Silver': return { bg: 'bg-gradient-to-b from-slate-400 via-slate-600 to-slate-900 text-slate-100 border-slate-300/60', header: 'bg-slate-900/80 border-slate-400/40' };
+          case 'Gold': return { bg: 'bg-gradient-to-b from-amber-300 via-yellow-500 to-amber-800 text-amber-950 border-amber-300', header: 'bg-amber-950/30 border-amber-300/40 text-amber-100' };
+          case 'Rare Gold': return { bg: 'bg-gradient-to-br from-yellow-300 via-amber-400 to-amber-700 text-amber-950 border-yellow-200', header: 'bg-amber-950/40 border-yellow-300/60 text-yellow-100' };
+          case 'Special': return { bg: 'bg-gradient-to-br from-purple-800 via-fuchsia-900 to-slate-950 text-purple-100 border-fuchsia-500', header: 'bg-purple-950/80 border-fuchsia-500/50 text-fuchsia-200' };
+          case 'Epic': return { bg: 'bg-gradient-to-br from-cyan-600 via-blue-900 to-slate-950 text-cyan-100 border-cyan-400', header: 'bg-slate-950/80 border-cyan-400/50 text-cyan-200' };
+          case 'Icon': return { bg: 'bg-gradient-to-b from-stone-100 via-amber-100 to-stone-300 text-amber-950 border-yellow-500', header: 'bg-amber-950/20 border-yellow-600/50 text-amber-950' };
+          case 'Ultimate': default: return { bg: 'bg-gradient-to-br from-amber-500 via-purple-700 to-indigo-950 text-white border-amber-300 animate-pulse-slow', header: 'bg-black/60 border-amber-400/60 text-amber-200' };
+        }
+      };
+
+      const theme = getTierTheme();
+
+      return (
+        <div
+          onClick={onClick}
+          className={`relative select-none overflow-hidden transition-all duration-300 cursor-pointer shadow-xl ${sizeClasses} ${theme.bg} ${
+            selected ? 'ring-4 ring-yellow-400 scale-105 z-10' : 'hover:scale-[1.03]'
+          }`}
+        >
+          {showNewBadge && (
+            <div className="absolute top-2 right-2 bg-rose-600 text-white font-extrabold px-1.5 py-0.5 rounded text-[9px] tracking-wider animate-bounce shadow-md z-20">
+              NEW
+            </div>
+          )}
+
+          <div className="absolute top-2 left-2 z-10 flex flex-col items-center">
+            <span className="font-black text-lg leading-none drop-shadow">{player.rating}</span>
+            <span className="font-bold text-[10px] uppercase opacity-90">{player.position}</span>
+          </div>
+
+          <div className="absolute top-9 left-2 z-10 flex flex-col items-center">
+            <span className="text-sm">{player.flagEmoji}</span>
+          </div>
+
+          <div className="w-full h-[52%] flex items-end justify-center pt-2 overflow-hidden relative">
+            <img
+              src={player.photoUrl}
+              alt={player.name}
+              className="h-full object-cover object-top drop-shadow-xl"
+              onError={(e) => { e.target.style.display = 'none'; }}
+            />
+          </div>
+
+          <div className={`w-full py-0.5 px-1 text-center font-black truncate border-y ${theme.header}`}>
+            <span className="drop-shadow">{player.arabicName || player.name}</span>
+          </div>
+
+          <div className="p-1.5 grid grid-cols-2 gap-x-2 gap-y-0.5 text-[10px] font-bold">
+            <div className="flex justify-between"><span>PAC</span><span>{player.stats.pac}</span></div>
+            <div className="flex justify-between"><span>DRI</span><span>{player.stats.dri}</span></div>
+            <div className="flex justify-between"><span>SHO</span><span>{player.stats.sho}</span></div>
+            <div className="flex justify-between"><span>DEF</span><span>{player.stats.def}</span></div>
+            <div className="flex justify-between"><span>PAS</span><span>{player.stats.pas}</span></div>
+            <div className="flex justify-between"><span>PHY</span><span>{player.stats.phy}</span></div>
+          </div>
+
+          <div className="text-[9px] text-center font-semibold opacity-75 truncate px-1 pb-1">
+            {player.club}
+          </div>
+        </div>
+      );
+    }
+
+    // --- 6. MAIN APP COMPONENT ---
+    function App() {
+      const [coins, setCoins] = useState(() => {
+        const saved = localStorage.getItem('ut_coins_v1');
+        return saved ? parseInt(saved, 10) : 100000;
+      });
+
+      const [club, setClub] = useState(() => {
+        const saved = localStorage.getItem('ut_club_v1');
+        return saved ? JSON.parse(saved) : {
+          'yashin-icon': 1, 'saliba-rare': 1, 'cubarsi-silver': 1, 'theo-rare': 1,
+          'hakimi-gold': 1, 'modric-rare': 1, 'mainoo-silver': 1, 'pedri-rare': 1,
+          'endrick-silver': 1, 'guler-silver': 1, 'rashford-gold': 1
+        };
+      });
+
+      const [squad, setSquad] = useState(() => {
+        const saved = localStorage.getItem('ut_squad_v1');
+        return saved ? JSON.parse(saved) : {
+          gk: 'yashin-icon', lb: 'theo-rare', cb1: 'saliba-rare', cb2: 'cubarsi-silver',
+          rb: 'hakimi-gold', cm1: 'modric-rare', cdm: 'mainoo-silver', cm2: 'pedri-rare',
+          lw: 'rashford-gold', st: 'endrick-silver', rw: 'guler-silver'
+        };
+      });
+
+      const [activeTab, setActiveTab] = useState('home');
+      const [activePackOpening, setActivePackOpening] = useState(null);
+      const [activeSlotId, setActiveSlotId] = useState(null);
+      const [searchTerm, setSearchTerm] = useState('');
+
+      useEffect(() => { localStorage.setItem('ut_coins_v1', coins.toString()); }, [coins]);
+      useEffect(() => { localStorage.setItem('ut_club_v1', JSON.stringify(club)); }, [club]);
+      useEffect(() => { localStorage.setItem('ut_squad_v1', JSON.stringify(squad)); }, [squad]);
+
+      const handleOpenPack = (pack) => {
+        if (coins < pack.price) return;
+        soundFx.playTap();
+        setCoins(prev => prev - pack.price);
+
+        const drawn = [];
+        const tiers = Object.keys(pack.probabilities);
+        for (let i = 0; i < pack.cardCount; i++) {
+          const rand = Math.random() * 100;
+          let cumulative = 0;
+          let selectedTier = tiers[0];
+          for (const tier of tiers) {
+            cumulative += pack.probabilities[tier];
+            if (rand <= cumulative) {
+              selectedTier = tier;
+              break;
+            }
+          }
+          const pool = PLAYERS_DATABASE.filter(p => p.tier === selectedTier);
+          const chosen = pool.length > 0 ? pool[Math.floor(Math.random() * pool.length)] : PLAYERS_DATABASE[0];
+          drawn.push(chosen);
+        }
+
+        soundFx.playPackOpenBoom();
+        setActivePackOpening({ pack, drawnPlayers: drawn, currentIndex: 0, showSummary: false });
+      };
+
+      const finishPackOpening = (keptPlayers, soldAmount) => {
+        setCoins(prev => prev + soldAmount);
+        setClub(prev => {
+          const next = { ...prev };
+          keptPlayers.forEach(p => {
+            next[p.id] = (next[p.id] || 0) + 1;
+          });
+          return next;
+        });
+        setActivePackOpening(null);
+      };
+
+      return (
+        <div className="min-h-screen flex flex-col">
+          {/* HEADER */}
+          <header className="sticky top-0 z-40 bg-neutral-950/90 backdrop-blur border-b border-neutral-800 p-4">
+            <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-4">
+              <div className="flex items-center gap-3 cursor-pointer" onClick={() => setActiveTab('home')}>
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-500 to-yellow-400 p-0.5">
+                  <div className="w-full h-full bg-neutral-950 rounded-[10px] flex items-center justify-center font-black text-amber-400">
+                    UT
+                  </div>
+                </div>
+                <div>
+                  <h1 className="font-extrabold text-lg text-amber-400">ULTIMATE TEAM FC</h1>
+                  <p className="text-[10px] text-neutral-400">فريق الأساطير • 2026</p>
+                </div>
+              </div>
+
+              {/* NAV TABS */}
+              <nav className="flex gap-2 bg-neutral-900 p-1.5 rounded-2xl border border-neutral-800">
+                <button onClick={() => { soundFx.playTap(); setActiveTab('home'); }} className={`px-4 py-2 rounded-xl text-xs font-bold ${activeTab === 'home' ? 'bg-amber-400 text-neutral-950' : 'text-neutral-300'}`}>
+                  الرئيسية 🏠
+                </button>
+                <button onClick={() => { soundFx.playTap(); setActiveTab('packs'); }} className={`px-4 py-2 rounded-xl text-xs font-bold ${activeTab === 'packs' ? 'bg-amber-400 text-neutral-950' : 'text-neutral-300'}`}>
+                  فتح الباكات 📦
+                </button>
+                <button onClick={() => { soundFx.playTap(); setActiveTab('squad'); }} className={`px-4 py-2 rounded-xl text-xs font-bold ${activeTab === 'squad' ? 'bg-amber-400 text-neutral-950' : 'text-neutral-300'}`}>
+                  التشكيلة ⚽
+                </button>
+                <button onClick={() => { soundFx.playTap(); setActiveTab('collection'); }} className={`px-4 py-2 rounded-xl text-xs font-bold ${activeTab === 'collection' ? 'bg-amber-400 text-neutral-950' : 'text-neutral-300'}`}>
+                  المجموعة 📚
+                </button>
+              </nav>
+
+              {/* COINS BALANCE */}
+              <div className="flex items-center gap-2 bg-amber-950/80 border border-amber-500/50 px-4 py-2 rounded-xl">
+                <span className="text-yellow-400 text-lg">🪙</span>
+                <span className="font-black text-yellow-300 text-sm">{coins.toLocaleString()} Coins</span>
+              </div>
+            </div>
+          </header>
+
+          {/* MAIN CONTAINER */}
+          <main className="flex-1 max-w-7xl w-full mx-auto p-4 md:p-6">
+            {activeTab === 'home' && (
+              <div className="space-y-8 text-center py-12">
+                <div className="bg-gradient-to-r from-amber-600 to-purple-950 p-12 rounded-3xl border border-amber-400/30 shadow-2xl">
+                  <h1 className="text-4xl md:text-6xl font-black text-white mb-4">
+                    ابنِ فريق الأحلام وافتح الباكات! 🌟
+                  </h1>
+                  <p className="text-neutral-300 max-w-2xl mx-auto text-sm mb-6">
+                    جمع أساطير كرة القدم، كوّن التشكيلة التكتيكية بالملعب، واجمع ملايين الـ Coins في أكبر تجربة Ultimate Team!
+                  </p>
+                  <div className="flex justify-center gap-4">
+                    <button onClick={() => setActiveTab('packs')} className="px-8 py-4 bg-amber-400 text-neutral-950 font-black rounded-2xl text-sm shadow-lg">
+                      فتح الباكات الآن 📦
+                    </button>
+                    <button onClick={() => setActiveTab('squad')} className="px-8 py-4 bg-neutral-900 text-white font-bold rounded-2xl border border-neutral-700 text-sm">
+                      عرض التشكيلة ⚽
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* PACK STORE */}
+            {activeTab === 'packs' && (
+              <div className="space-y-6">
+                <h2 className="text-3xl font-extrabold text-amber-400">متجر الباكات 📦</h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                  {PACKS_DATABASE.map(pack => (
+                    <div key={pack.id} className={`bg-gradient-to-b ${pack.bgGradient} p-5 rounded-3xl border border-white/10 flex flex-col justify-between shadow-xl`}>
+                      <div className="text-center my-4">
+                        <div className="text-4xl mb-2">⚡</div>
+                        <h3 className="font-black text-lg text-white">{pack.arabicName}</h3>
+                        <p className="text-xs text-neutral-300 mt-1">{pack.arabicDescription}</p>
+                      </div>
+                      <button
+                        disabled={coins < pack.price}
+                        onClick={() => handleOpenPack(pack)}
+                        className={`w-full py-3 rounded-2xl font-black text-sm shadow-lg ${
+                          coins >= pack.price ? 'bg-amber-400 text-neutral-950 hover:brightness-110' : 'bg-neutral-800 text-neutral-500 cursor-not-allowed'
+                        }`}
+                      >
+                        فتح بـ {pack.price.toLocaleString()} 🪙
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* SQUAD BUILDER */}
+            {activeTab === 'squad' && (
+              <div className="space-y-6">
+                <h2 className="text-3xl font-extrabold text-amber-400">التشكيلة والملعب ⚽</h2>
+                <div className="relative w-full aspect-[4/3] bg-emerald-900 rounded-3xl overflow-hidden border-4 border-emerald-950 shadow-2xl p-4">
+                  <div className="absolute inset-0 bg-gradient-to-b from-emerald-800 to-emerald-950" />
+                  {FORMATIONS[0].slots.map(slot => {
+                    const playerId = squad[slot.id];
+                    const player = PLAYERS_DATABASE.find(p => p.id === playerId);
+                    return (
+                      <div
+                        key={slot.id}
+                        onClick={() => setActiveSlotId(slot.id)}
+                        className="absolute -translate-x-1/2 -translate-y-1/2 cursor-pointer"
+                        style={{ top: `${slot.top}%`, left: `${slot.left}%` }}
+                      >
+                        {player ? (
+                          <PlayerCard player={player} size="sm" />
+                        ) : (
+                          <div className="w-16 h-24 rounded-xl bg-black/40 border-2 border-dashed border-white/40 flex flex-col items-center justify-center text-xs font-bold text-amber-300">
+                            {slot.position}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* COLLECTION */}
+            {activeTab === 'collection' && (
+              <div className="space-y-6">
+                <h2 className="text-3xl font-extrabold text-amber-400">المجموعة والكروت 📚</h2>
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                  {PLAYERS_DATABASE.map(player => {
+                    const count = club[player.id] || 0;
+                    return (
+                      <div key={player.id} className={`flex flex-col items-center ${count === 0 ? 'opacity-30 grayscale' : ''}`}>
+                        <PlayerCard player={player} size="sm" />
+                        {count > 1 && <span className="text-xs font-bold text-amber-300 mt-1">x{count} نسخة</span>}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </main>
+
+          {/* PACK OPENING MODAL */}
+          {activePackOpening && (
+            <div className="fixed inset-0 z-50 bg-black/95 flex flex-col items-center justify-center p-6 text-center">
+              <h2 className="text-3xl font-black text-amber-400 mb-6">مبروك! حصلت على الكروت التالية 🎉</h2>
+              <div className="flex flex-wrap justify-center gap-4 mb-8">
+                {activePackOpening.drawnPlayers.map((player, idx) => (
+                  <PlayerCard key={idx} player={player} size="md" showNewBadge />
+                ))}
+              </div>
+              <button
+                onClick={() => finishPackOpening(activePackOpening.drawnPlayers, 0)}
+                className="py-4 px-8 bg-emerald-500 text-white font-black rounded-2xl text-sm"
+              >
+                حفظ الكروت في النادي
+              </button>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
+</body>
+</html>

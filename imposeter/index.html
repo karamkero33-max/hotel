@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IMPOSTER | Local Pass & Play Party Game</title>
+  <meta name="description" content="A local pass-and-play social deduction party game. Find the Imposter!">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Background Neon Blurs -->
+  <div class="neon-glow-blob blob-cyan"></div>
+  <div class="neon-glow-blob blob-rose"></div>
+
+  <!-- Header Bar -->
+  <header>
+    <div class="logo-container">
+      <div class="logo-badge">I</div>
+      <h1 class="logo-text">IMPOSTER</h1>
+    </div>
+    
+    <div class="header-actions">
+      <!-- Mute Toggle Button -->
+      <button id="mute-toggle" class="btn-icon-toggle" title="Toggle audio">
+        <!-- Volume2 Icon (Unmuted) -->
+        <svg id="icon-volume-on" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="cyan-bright"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path><path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path></svg>
+        <!-- VolumeX Icon (Muted) -->
+        <svg id="icon-volume-off" class="hidden" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><line x1="22" y1="9" x2="16" y2="15"></line><line x1="16" y1="9" x2="22" y2="15"></line></svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- Main App viewport -->
+  <main>
+
+    <!-- ================= SCREEN 1: SETUP SCREEN ================= -->
+    <section id="setup-screen" class="glass-card">
+      <div style="text-align: center; margin-bottom: 24px;">
+        <span class="badge-tag badge-cyan">Local Pass & Play</span>
+        <h2 class="card-title">Setup Operations</h2>
+        <p class="card-subtitle">Assemble 3+ players on this single device</p>
+      </div>
+
+      <!-- Squad Manifest section -->
+      <div style="margin-bottom: 24px;">
+        <label class="input-label">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+          Squad Manifest (<span id="player-count">0</span> Players)
+        </label>
+        
+        <form id="add-player-form" class="input-row">
+          <input
+            id="player-name-input"
+            type="text"
+            placeholder="Enter Agent Name..."
+            maxlength="15"
+            class="input-text"
+            required
+          />
+          <button type="submit" class="btn-add" title="Add Player">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+          </button>
+        </form>
+
+        <!-- Players List Box -->
+        <div id="players-list" class="list-scroll-box">
+          <!-- Dynamic Items inserted here -->
+        </div>
+      </div>
+
+      <!-- Information Database section -->
+      <div style="margin-bottom: 32px;">
+        <label class="input-label">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+          Information Database
+        </label>
+
+        <!-- Categories grid -->
+        <div id="categories-grid" class="grid-categories">
+          <!-- Category Cards inserted here -->
+        </div>
+      </div>
+
+      <!-- Start Mission Button -->
+      <button id="btn-start-game" class="btn-primary">
+        <span>INITIALIZE MISSION</span>
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+      </button>
+    </section>
+
+    <!-- ================= SCREEN 2: PASS & REVEAL SCREEN ================= -->
+    <section id="pass-reveal-screen" class="glass-card hidden">
+      <div style="text-align: center; margin-bottom: 24px;">
+        <span id="pass-reveal-header-badge" class="badge-tag bg-zinc-950 text-zinc-400">Clearance Check</span>
+      </div>
+
+      <!-- State A: Pass Prompt -->
+      <div id="state-pass-prompt" class="animate-float" style="display: flex; flex-direction: column; align-items: center; padding: 24px 0; text-align: center;">
+        <div class="circle-avatar-container">
+          <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="animate-pulse"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+        </div>
+        
+        <p style="text-transform: uppercase; letter-spacing: 0.1em; font-size: 12px; font-weight: 600; color: var(--text-secondary); margin-bottom: 4px;">
+          Secure Pass Required
+        </p>
+        <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 24px; max-width: 280px; line-height: 1.4;">
+          Hand the device over. Other players must not peek.
+        </p>
+
+        <h3 id="pass-player-name" class="player-big-name glow-cyan-text">ALICE</h3>
+
+        <button id="btn-reveal-secret" class="btn-secondary" style="border-color: rgba(34, 211, 238, 0.4); max-width: 320px; width: 100%;">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+          <span>I AM <span id="pass-player-name-sub">ALICE</span>, REVEAL</span>
+        </button>
+      </div>
+
+      <!-- State B: Secret Revealed -->
+      <div id="state-revealed-secret" class="hidden" style="display: flex; flex-direction: column; align-items: center; padding: 16px 0; text-align: center;">
+        
+        <!-- Innocent Player UI block -->
+        <div id="reveal-innocent-block" class="animate-float" style="display: flex; flex-direction: column; align-items: center; width: 100%;">
+          <div class="circle-avatar-container circle-avatar-container-emerald">
+            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+          </div>
+          
+          <p class="badge-tag badge-emerald" style="font-size: 11px; margin-bottom: 6px;">Intel Authorized (Innocent)</p>
+          <h3 style="font-size: 14px; font-weight: 600; color: var(--text-secondary); margin-bottom: 24px;">
+            Category: <span id="reveal-category-name" style="color: var(--text-primary); border-bottom: 1px dashed var(--text-muted); padding-bottom: 2px;">Food</span>
+          </h3>
+
+          <div class="reveal-scanner-wrapper">
+            <div class="reveal-scanner-border">
+              <div class="reveal-scanner-line"></div>
+            </div>
+            <div class="reveal-info-box emerald-border glow-emerald">
+              <p style="font-size: 10px; text-transform: uppercase; font-weight: 800; color: var(--text-muted); letter-spacing: 0.05em; margin-bottom: 8px;">Secret Word</p>
+              <h4 id="reveal-secret-word" class="glow-emerald-text" style="font-size: 36px; font-weight: 900; letter-spacing: 0.02em;">PIZZA</h4>
+            </div>
+          </div>
+
+          <p style="font-size: 12px; color: var(--text-muted); max-width: 280px; margin-bottom: 32px; line-height: 1.4;">
+            Memorize the word. Describe it carefully without saying it directly!
+          </p>
+        </div>
+
+        <!-- Imposter Player UI block -->
+        <div id="reveal-imposter-block" class="animate-float hidden" style="display: flex; flex-direction: column; align-items: center; width: 100%;">
+          <div class="circle-avatar-container circle-avatar-container-rose">
+            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+          </div>
+
+          <p class="badge-tag badge-rose" style="font-size: 11px; margin-bottom: 6px;">Identity Classified</p>
+          <h3 style="font-size: 14px; font-weight: 600; color: var(--text-secondary); margin-bottom: 24px;">
+            Category: <span id="reveal-imposter-category" style="color: var(--text-primary); border-bottom: 1px dashed var(--text-muted); padding-bottom: 2px;">Food</span>
+          </h3>
+
+          <div class="reveal-scanner-wrapper">
+            <div class="reveal-scanner-border">
+              <div class="reveal-scanner-line" style="background: linear-gradient(90deg, transparent, var(--rose-bright), transparent); box-shadow: 0 0 8px var(--rose);"></div>
+            </div>
+            <div class="reveal-info-box rose-border glow-rose">
+              <p style="font-size: 10px; text-transform: uppercase; font-weight: 800; color: var(--text-muted); letter-spacing: 0.05em; margin-bottom: 8px;">Classified Role</p>
+              <h4 class="glow-rose-text" style="font-size: 32px; font-weight: 900; letter-spacing: 0.05em;">THE IMPOSTER</h4>
+            </div>
+          </div>
+
+          <p style="font-size: 12px; color: var(--text-muted); max-width: 280px; margin-bottom: 32px; line-height: 1.4;">
+            You do not know the word. Ask clever questions, blend in, and decode the word from their answers!
+          </p>
+        </div>
+
+        <!-- Next button -->
+        <button id="btn-next-player" class="btn-secondary" style="max-width: 320px; width: 100%;">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.96 14.04l-3.92-3.92a2 2 0 0 0-2.83 0v0a2 2 0 0 0 0 2.83l3.92 3.92a2 2 0 0 0 2.83 0v0a2 2 0 0 0 0-2.83z"></path><path d="M2.5 13H5a2 2 0 0 0 2-2V8.5a2 2 0 0 0-2-2H2.5A2 2 0 0 0 .5 8.5V11a2 2 0 0 0 2 2z"></path></svg>
+          <span id="btn-next-player-text">HIDE AND PASS TO NEXT</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- ================= SCREEN 3: DISCUSSION SCREEN ================= -->
+    <section id="discussion-screen" class="glass-card hidden">
+      <div style="text-align: center; margin-bottom: 16px;">
+        <span class="badge-tag badge-cyan">Discussion Phase</span>
+        <h2 class="card-title">Interrogations</h2>
+        <p class="card-subtitle">Cross-examine each other on the database topic</p>
+      </div>
+
+      <!-- Glowing circular timer -->
+      <div class="timer-container">
+        <svg class="timer-svg">
+          <circle cx="80" cy="80" r="54" class="timer-ring-bg"></circle>
+          <circle id="timer-fill" cx="80" cy="80" r="54" class="timer-ring-fill cyan-time"></circle>
+        </svg>
+        <div class="timer-text-content">
+          <span id="timer-digits" class="timer-digits cyan-time">3:00</span>
+          <span class="timer-subtext">Seconds left</span>
+        </div>
+      </div>
+
+      <!-- Timer Controls -->
+      <div class="timer-controls-row">
+        <button id="btn-timer-sub" class="btn-timer-mod" title="Subtract 30s">-30s</button>
+        
+        <button id="btn-timer-play-pause" class="btn-timer-action play" title="Start Timer">
+          <svg id="icon-timer-play" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+          <svg id="icon-timer-pause" class="hidden" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>
+        </button>
+
+        <button id="btn-timer-reset" class="btn-timer-reset" title="Reset Timer">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path></svg>
+        </button>
+
+        <button id="btn-timer-add" class="btn-timer-mod" title="Add 30s">+30s</button>
+      </div>
+
+      <!-- Instructions guidelines note box -->
+      <div class="info-note-box">
+        <div class="info-note-title">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+          Interrogation Guidelines:
+        </div>
+        <ul class="info-note-list">
+          <li>Ask one question to another player regarding the category.</li>
+          <li>Innocent clues should be subtle: clear enough for allies, vague enough to block the Imposter.</li>
+          <li>The Imposter must listen intently, deduce the concept, and bluff!</li>
+        </ul>
+      </div>
+
+      <!-- Proceed button -->
+      <button id="btn-go-to-voting" class="btn-primary">
+        <span>PROCEED TO VOTING</span>
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><polyline points="9 11 12 14 22 4"></polyline><line x1="21" y1="12" x2="21" y2="21"></line><line x1="12" y1="21" x2="3" y2="21"></line></svg>
+      </button>
+    </section>
+
+    <!-- ================= SCREEN 4: VOTING SCREEN ================= -->
+    <section id="voting-screen" class="glass-card hidden">
+      <div style="text-align: center; margin-bottom: 24px;">
+        <span class="badge-tag badge-rose" style="animation: pulse-slow 2s infinite alternate;">Tribunal Election</span>
+        <h2 class="card-title">Cast Accusations</h2>
+        <p class="card-subtitle">Select the person suspected of being the Imposter</p>
+      </div>
+
+      <!-- Voting card grid container -->
+      <div id="voting-cards-grid" class="voting-grid">
+        <!-- Dynamic voting buttons injected here -->
+      </div>
+
+      <!-- Cast Accusation button -->
+      <button id="btn-confirm-vote" class="btn-danger-disabled" disabled>
+        <span>CONFIRM ACCUSATION</span>
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+      </button>
+    </section>
+
+    <!-- ================= SCREEN 5: RESULT SCREEN ================= -->
+    <section id="result-screen" class="glass-card hidden">
+      <div id="result-victory-container" style="display: flex; flex-direction: column; align-items: center; text-align: center;">
+        <!-- Dynamic victory headers injected here -->
+      </div>
+
+      <!-- Play Again button -->
+      <button id="btn-play-again" class="btn-primary" style="margin-top: 8px;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path></svg>
+        <span>PLAY AGAIN</span>
+      </button>
+    </section>
+
+  </main>
+
+  <!-- Footer block -->
+  <footer>
+    IMPOSTER v1.0.0 • NO DATA HARVESTED • LOCAL ENCRYPTED SESSIONS
+  </footer>
+
+  <!-- App logic script -->
+  <script src="app.js"></script>
+</body>
+</html>

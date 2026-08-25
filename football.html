@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+
+<title>محلل مباريات كرة القدم</title>
+
+<style>
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:Arial;
+}
+
+body{
+
+background:linear-gradient(135deg,#00111f,#003566,#001d3d);
+
+display:flex;
+justify-content:center;
+align-items:center;
+
+height:100vh;
+
+color:white;
+}
+
+section{
+
+width:700px;
+
+background:rgba(255,255,255,.08);
+
+padding:35px;
+
+border-radius:20px;
+
+text-align:center;
+
+backdrop-filter:blur(10px);
+
+box-shadow:0 0 25px rgba(0,0,0,.5);
+
+}
+
+h1{
+
+font-size:38px;
+
+margin-bottom:20px;
+
+color:#FFD60A;
+
+}
+
+p{
+
+font-size:20px;
+
+line-height:35px;
+
+margin-bottom:30px;
+
+}
+
+button{
+
+padding:15px 35px;
+
+font-size:20px;
+
+border:none;
+
+border-radius:10px;
+
+cursor:pointer;
+
+background:#FFD60A;
+
+font-weight:bold;
+
+transition:.3s;
+
+margin-top:15px;
+
+}
+
+button:hover{
+
+transform:scale(1.05);
+
+background:white;
+
+}
+
+form{
+
+margin-top:30px;
+
+display:none;
+
+}
+
+input{
+
+width:90%;
+
+padding:15px;
+
+margin:12px;
+
+font-size:20px;
+
+border:none;
+
+border-radius:10px;
+
+text-align:center;
+
+}
+
+#result{
+
+margin-top:30px;
+
+font-size:25px;
+
+line-height:45px;
+
+}
+
+</style>
+
+</head>
+
+<body>
+
+<section>
+
+<h1>⚽ حلّل مباريات كرة القدم بالذكاء</h1>
+
+<p>
+
+اكتب اسم الفريقين وسيقوم الذكاء الاصطناعي بتحليل المباراة
+وإخبارك بالفريق المتوقع للفوز مع الأسباب.
+
+</p>
+
+<button onclick="showForm()">
+
+ابدأ التحليل الآن
+
+</button>
+
+<form id="form">
+
+<input id="team1" placeholder="الفريق الأول">
+
+<input id="team2" placeholder="الفريق الثاني">
+
+<button type="button" onclick="analyze()">
+
+حلل المباراة
+
+</button>
+
+</form>
+
+<h2 id="result"></h2>
+
+</section>
+
+<script>
+
+function showForm(){
+
+document.getElementById("form").style.display="block";
+
+}
+
+const reasons=[
+
+"يمتلك خط هجوم أقوى.",
+"دفاعه أكثر صلابة.",
+"مستواه في آخر المباريات أفضل.",
+"يمتلك لاعبين أصحاب خبرة.",
+"أفضل في الاستحواذ وصناعة الفرص.",
+"يجيد اللعب تحت الضغط.",
+"يمتلك مدربًا مميزًا تكتيكيًا.",
+"أرقامه الهجومية هذا الموسم ممتازة.",
+"تنظيمه الدفاعي قوي.",
+"يعتمد على هجمات مرتدة خطيرة."
+
+];
+
+function analyze(){
+
+let t1=document.getElementById("team1").value.trim();
+
+let t2=document.getElementById("team2").value.trim();
+
+if(t1==""||t2==""){
+
+alert("اكتب اسم الفريقين");
+
+return;
+
+}
+
+let winner=Math.random()<0.5?t1:t2;
+
+let loser=winner==t1?t2:t1;
+
+let percent=Math.floor(Math.random()*21)+60;
+
+let reason1=reasons[Math.floor(Math.random()*reasons.length)];
+
+let reason2=reasons[Math.floor(Math.random()*reasons.length)];
+
+document.getElementById("result").innerHTML=
+
+"🏆 المتوقع فوزه هو <span style='color:#FFD60A'>"+winner+"</span><br><br>"+
+
+"📊 نسبة الفوز: "+percent+"%<br><br>"+
+
+"✅ الأسباب:<br>"+
+
+"• "+reason1+"<br>"+
+
+"• "+reason2+"<br><br>"+
+
+"⚽ الفريق الآخر ("+loser+") ما زالت لديه فرصة إذا استغل الفرص جيدًا.";
+
+}
+
+</script>
+
+</body>
+
+</html>

@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tier List التقييمات</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background-color: #1a1a1a;
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+
+        h1 {
+            margin-bottom: 20px;
+        }
+
+        .tier-board {
+            width: 100%;
+            max-width: 900px;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            background-color: #000;
+            border: 2px solid #000;
+        }
+
+        .tier-row {
+            display: flex;
+            min-height: 80px;
+            background-color: #1a1a1a;
+        }
+
+        .tier-label {
+            width: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 18px;
+            color: #000;
+            text-align: center;
+            padding: 10px;
+            flex-shrink: 0;
+        }
+
+        /* ألوان الفئات بناءً على الصورة */
+        .tier-jamed { background-color: #95ff95; }
+        .tier-hadi { background-color: #ffff7e; }
+        .tier-daye3 { background-color: #ff8080; }
+        .tier-no-eval { background-color: #e0e0e0; }
+
+        .tier-dropzone {
+            flex-grow: 1;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            background-color: #121212;
+        }
+
+        .items-pool {
+            width: 100%;
+            max-width: 900px;
+            margin-top: 30px;
+            padding: 15px;
+            background-color: #2a2a2a;
+            border-radius: 8px;
+        }
+
+        .items-pool h2 {
+            font-size: 16px;
+            margin-bottom: 10px;
+            color: #ccc;
+        }
+
+        .items-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            min-height: 60px;
+        }
+
+        .item {
+            background-color: #333;
+            color: #fff;
+            padding: 10px 15px;
+            border-radius: 6px;
+            border: 1px solid #555;
+            cursor: grab;
+            user-select: none;
+            font-size: 14px;
+            transition: transform 0.1s, background-color 0.2s;
+        }
+
+        .item:active {
+            cursor: grabbing;
+        }
+
+        .item.dragging {
+            opacity: 0.5;
+            transform: scale(0.95);
+        }
+    </style>
+</head>
+<body>
+
+    <h1>تقييم الأماكن (Tier List)</h1>
+
+    <!-- لوحة التقييم -->
+    <div class="tier-board">
+        <div class="tier-row">
+            <div class="tier-label tier-jamed">جامد</div>
+            <div class="tier-dropzone"></div>
+        </div>
+        <div class="tier-row">
+            <div class="tier-label tier-hadi">عادي</div>
+            <div class="tier-dropzone"></div>
+        </div>
+        <div class="tier-row">
+            <div class="tier-label tier-daye3">ضيع</div>
+            <div class="tier-dropzone"></div>
+        </div>
+        <div class="tier-row">
+            <div class="tier-label tier-no-eval">لا تقييم</div>
+            <div class="tier-dropzone"></div>
+        </div>
+    </div>
+
+    <!-- قائمة العناصر للسحب -->
+    <div class="items-pool">
+        <h2>اسحب الأماكن إلى الفئة المناسبة:</h2>
+        <div class="items-container tier-dropzone">
+            <div class="item" draggable="true">مبيت الانبا بولا</div>
+            <div class="item" draggable="true">كاريبيان</div>
+            <div class="item" draggable="true">شارميليون</div>
+            <div class="item" draggable="true">موفنبيك</div>
+            <div class="item" draggable="true">دير الانبا ابرام</div>
+            <div class="item" draggable="true">جراند بلازا</div>
+            <div class="item" draggable="true">جرين ديزورت</div>
+            <div class="item" draggable="true">كيروزيز</div>
+            <div class="item" draggable="true">ستيلديماري</div>
+            <div class="item" draggable="true">مبيت سمعان الخراز</div>
+            <div class="item" draggable="true">جراند ريزورت</div>
+        </div>
+    </div>
+
+    <script>
+        const items = document.querySelectorAll('.item');
+        const dropzones = document.querySelectorAll('.tier-dropzone');
+
+        items.forEach(item => {
+            item.addEventListener('dragstart', () => {
+                item.classList.add('dragging');
+            });
+
+            item.addEventListener('dragend', () => {
+                item.classList.remove('dragging');
+            });
+        });
+
+        dropzones.forEach(zone => {
+            zone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                const draggingItem = document.querySelector('.dragging');
+                if (draggingItem) {
+                    zone.appendChild(draggingItem);
+                }
+            });
+        });
+    </script>
+</body>
+</html>

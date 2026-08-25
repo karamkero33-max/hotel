@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لعبة الذاكرة - كرم باشا</title>
+    
+    <style>
+        /* --- أولاً: تنسيقات التصميم (CSS) --- */
+        body {
+            background-color: #f0f2f5;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        .game-container {
+            text-align: center;
+            width: 95%;
+            max-width: 500px;
+        }
+
+        h1 { color: #333; margin-bottom: 10px; }
+
+        /* لوحة التحكم (العداد والزر) */
+        .controls {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            margin-bottom: 20px;
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        #moves-count { font-weight: bold; color: #007bff; font-size: 1.2rem; }
+
+        button {
+            padding: 10px 20px;
+            cursor: pointer;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+
+        button:hover { background-color: #218838; }
+
+        /* شبكة البطاقات */
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr); /* 4 أعمدة */
+            gap: 10px;
+            perspective: 1000px; /* لإعطاء تأثير ثلاثي الأبعاد عند القلب */
+        }
+
+        /* تصميم البطاقة الواحدة */
+        .card {
+            height: 100px;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.6s;
+            cursor: pointer;
+        }
+
+        /* الكلاس الذي يتم إضافته عند النقر لقلب البطاقة */
+        .card.flipped {
+            transform: rotateY(180deg);
+        }
+
+        /* تصميم وجهي البطاقة */
+        .card-front, .card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden; /* إخفاء الوجه الخلفي عند القلب */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        /* الوجه الأمامي (الإيموجي) */
+        .card-front {
+            background-color: white;
+            transform: rotateY(180deg); /* يكون مقلوباً في البداية */
+        }
+
+        /* الوجه الخلفي (الغطاء) */
+        .card-back {
+            background-color: #007bff;
+            color: white;
+            font-size: 1.5rem;
+        }
+
+        /* شكل البطاقة بعد المطابقة */
+        .matched {
+            cursor: default;
+            opacity: 0.7;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="game-container">
+        <h1>لعبة الذاكرة 🧠</h1>
+        
+        <div class="controls">
+            <div class="moves-text">الحركات: <span id="moves-count">0</span></div>
+            <button id="restart-btn">إعادة اللعب 🔄</button>
+        </div>
+
+        <div id="game-grid" class="grid-container">
+            <!-- البطاقات سيتم إنشاؤها هنا بواسطة JS -->
+        </div>
+    </div>
+
+    <script>
+        /* --- ثانياً: المنطق البرمجي (JavaScript) --- */
+
+        // 1. البيانات: 8 أزواج من الإيموجي (المجموع 16)
+        const emojis = ['⚽', '⚽', '🚀', '🚀', '🎮', '🎮', '🍕', '🍕', '🍎', '🍎', '💎', '💎', '⭐', '⭐', '🦁', '🦁'];
+
+        let firstCard = null;   // لتخزين البطاقة الأولى المفتوحة
+        let secondCard = null;  // لتخزين البطاقة الثانية المفتوحة
+        let lockBoard = false;  // لمنع النقر أثناء فحص البطاقات
+        let moves = 0;          // عداد الحركات
+
+        const gameGrid = document.getElementById('game-grid');
+        const movesDisplay = document.getElementById('moves-count');
+        const restartBtn = document.getElementById('restart-btn');
+
+        // 2. دالة خلط المصفوفة عشوائياً
+        function shuffle(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        // 3. دالة بناء اللعبة
+        function createBoard() {
+            gameGrid.innerHTML = ''; // مسح اللوحة القديمة
+            moves = 0;
+            movesDisplay.textContent = moves;
+            lockBoard = false;
+            firstCard = null;
+            secondCard = null;
+
+            const shuffledEmojis = shuffle([...emojis]);
+
+            shuffledEmojis.forEach(emoji => {
+                const card = document.createElement('div');
+                card.classList.add('card');
+                card.dataset.name = emoji; // علامة لمعرفة نوع الإيموجي
+
+                card.innerHTML = `
+                    <div class="card-front">${emoji}</div>
+                    <div class="card-back">؟</div>
+                `;
+
+                card.addEventListener('click', flipCard);
+                gameGrid.appendChild(card);
+            });
+        }
+
+        // 4. دالة قلب البطاقة
+        function flipCard() {
+            if (lockBoard) return; // إذا كان النظام "مقفل" لا تفعل شيئاً
+            if (this === firstCard) return; // إذا نقر المستخدم على نفس البطاقة مرتين
+
+            this.classList.add('flipped');
+
+            if (!firstCard) {
+                firstCard = this; // تخزين البطاقة الأولى
+                return;
+            }
+
+            secondCard = this; // تخزين البطاقة الثانية
+            moves++;
+            movesDisplay.textContent = moves;
+
+            checkForMatch();
+        }
+
+        // 5. دالة فحص التطابق
+        function checkForMatch() {
+            let isMatch = firstCard.dataset.name === secondCard.dataset.name;
+
+            if (isMatch) {
+                disableCards(); // إذا تطابقتا، نوقفهما عن العمل
+            } else {
+                unflipCards(); // إذا لم يتطابقا، نقلبهما مرة أخرى
+            }
+        }
+
+        // حالة التطابق
+        function disableCards() {
+            firstCard.removeEventListener('click', flipCard);
+            secondCard.removeEventListener('click', flipCard);
+            firstCard.classList.add('matched');
+            secondCard.classList.add('matched');
+            resetBoard();
+        }
+
+        // حالة عدم التطابق
+        function unflipCards() {
+            lockBoard = true; // قفل اللوحة لمنع النقر السريع
+            setTimeout(() => {
+                firstCard.classList.remove('flipped');
+                secondCard.classList.remove('flipped');
+                resetBoard();
+            }, 1000); // الانتظار ثانية واحدة قبل القلْب
+        }
+
+        // إعادة ضبط المتغيرات
+        function resetBoard() {
+            [firstCard, secondCard] = [null, null];
+            lockBoard = false;
+        }
+
+        // تفعيل زر إعادة اللعب
+        restartBtn.addEventListener('click', createBoard);
+
+        // بدء اللعبة فور فتح الصفحة
+        createBoard();
+    </script>
+</body>
+</html>

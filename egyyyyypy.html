@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تحدي الكرة المصرية - النسخة الضخمة</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root { --primary: #00ff88; --bg: #0f172a; --card: #1e293b; --text: #f8fafc; }
+        body { font-family: 'Cairo', sans-serif; background: var(--bg); color: var(--text); margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        .container { width: 95%; max-width: 650px; background: var(--card); padding: 30px; border-radius: 30px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); text-align: center; border: 1px solid #334155; }
+        .hidden { display: none; }
+        h1 { color: var(--primary); font-size: 2rem; margin-bottom: 10px; text-shadow: 0 0 10px rgba(0,255,136,0.3); }
+        .score-board { display: flex; justify-content: center; gap: 15px; margin-bottom: 25px; flex-wrap: wrap; }
+        .p-card { background: #334155; padding: 10px 20px; border-radius: 15px; border: 2px solid transparent; transition: 0.3s; min-width: 90px; }
+        .p-card.active { border-color: var(--primary); transform: translateY(-5px); box-shadow: 0 5px 15px rgba(0,255,136,0.3); }
+        .p-score-label { color: var(--primary); font-size: 1.2rem; font-weight: 900; }
+        .question-box { background: #0f172a; padding: 25px; border-radius: 20px; margin-bottom: 20px; min-height: 140px; display: flex; flex-direction: column; justify-content: center; border: 2px solid #334155; position: relative; }
+        .q-count { position: absolute; top: 10px; right: 15px; font-size: 0.8rem; color: #64748b; }
+        .nickname-badge { font-size: 2.2rem; font-weight: 900; color: var(--primary); text-shadow: 0 0 15px rgba(0,255,136,0.4); }
+        .choices-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        button { background: #334155; color: white; border: 1px solid #475569; padding: 15px; border-radius: 12px; font-weight: 700; cursor: pointer; font-family: 'Cairo'; transition: 0.15s; font-size: 1rem; }
+        button:active { transform: scale(0.95); }
+        button.correct { background: #22c55e !important; border-color: #22c55e; }
+        button.wrong { background: #ef4444 !important; border-color: #ef4444; }
+        .main-btn { background: var(--primary); color: #000; width: 100%; font-size: 1.1rem; border: none; margin-top: 10px; padding: 15px; border-radius: 12px; font-weight: 900; cursor: pointer; }
+        .transfer-tag { background: #1e293b; border: 1px solid var(--primary); padding: 5px 10px; border-radius: 8px; margin: 3px; display: inline-block; font-size: 0.85rem; }
+        input { width: 85%; padding: 12px; margin: 5px; border-radius: 10px; background: #334155; border: 1px solid #475569; color: white; text-align: center; font-family: 'Cairo'; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div id="setup-screen">
+        <h1>🏆 موسوعة الكرة المصرية</h1>
+        <div id="player-inputs">
+            <input type="text" class="p-input" placeholder="اسم اللاعب 1" value="لاعب 1">
+            <input type="text" class="p-input" placeholder="اسم اللاعب 2" value="لاعب 2">
+        </div>
+        <button onclick="addPlayerField()">+ لاعب آخر</button>
+        <button class="main-btn" onclick="startApp()">بدأ التحدي 🏁</button>
+    </div>
+
+    <div id="game-screen" class="hidden">
+        <div id="score-board" class="score-board"></div>
+        <div id="menu-area">
+            <h3>اختر القسم:</h3>
+            <button class="main-btn" onclick="startRound('history')">📜 تاريخ الدوري (شامل)</button>
+            <button class="main-btn" onclick="startRound('nicknames')">🎭 ألقاب اللاعبين (كلاسيك)</button>
+            <button class="main-btn" onclick="startRound('transfers')">✈️ رحلة الانتقالات (صعب)</button>
+        </div>
+        <div id="quiz-area" class="hidden">
+            <div class="question-box">
+                <div id="q-counter" class="q-count"></div>
+                <div id="q-content"></div>
+            </div>
+            <div id="choices-grid" class="choices-grid"></div>
+            <button class="main-btn" style="background:#64748b; margin-top:25px" onclick="location.reload()">العودة للقائمة</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    let players = [];
+    let turn = 0;
+    let currentCategory = "";
+    let usedQuestions = { history: [], nicknames: [], transfers: [] };
+
+    // --- قاعدة بيانات ضخمة للأسئلة ---
+    const db = {
+        history: [
+            { q: "من هو أول نادي فاز بالدوري المصري 1948؟", c: ["الأهلي", "الزمالك", "الترسانة", "الاتحاد"], a: "الأهلي" },
+            { q: "من هو الهداف التاريخي للدوري المصري؟", c: ["حسن الشاذلي", "حسام حسن", "الخطيب", "الضظوي"], a: "حسن الشاذلي" },
+            { q: "نادي فاز بالدوري مرة واحدة فقط عام 1973؟", c: ["المصري", "غزل المحلة", "المنصورة", "طنطا"], a: "غزل المحلة" },
+            { q: "أول نادي من خارج القاهرة والإسكندرية يفوز بالدوري؟", c: ["الإسماعيلي", "المصري", "غزل المحلة", "المقاولون"], a: "الإسماعيلي" },
+            { q: "من هو الحارس صاحب أطول فترة شباك نظيفة؟", c: ["الحضري", "إكرامي", "ثابت البطل", "الشناوي"], a: "ثابت البطل" },
+            { q: "كم مرة فاز نادي الترسانة بلقب الدوري؟", c: ["مرة", "مرتين", "3 مرات", "صفر"], a: "مرة" },
+            { q: "صاحب أسرع هدف في تاريخ الدوري المصري؟", c: ["حسام باولو", "أيمن يونس", "أوميد أوكري", "عبد الله السعيد"], a: "حسام باولو" },
+            { q: "من هو الهداف التاريخي للأجانب في الدوري؟", c: ["فلافيو", "بابا أركو", "بناهيني", "علي معلول"], a: "بابا أركو" },
+            { q: "ما هو النادي الملقب بـ 'سيد البلد'؟", c: ["الأهلي", "الاتحاد السكندري", "الإسماعيلي", "المصري"], a: "الاتحاد السكندري" },
+            { q: "أول لاعب أجنبي يحقق لقب هداف الدوري؟", c: ["جون أوتاكا", "فلافيو", "بناهيني", "إيمانويل أمونيكي"], a: "جون أوتاكا" },
+            { q: "نادي الأوليمبي السكندري فاز بالدوري كم مرة؟", c: ["مرة", "مرتين", "صفر", "3 مرات"], a: "مرة" },
+            { q: "من هو المدرب صاحب الرقم القياسي في الفوز بالدوري؟", c: ["مانويل جوزيه", "هيديكوتي", "الجوهري", "حسام حسن"], a: "مانويل جوزيه" },
+            { q: "في أي عام تم إلغاء الدوري بسبب حرب أكتوبر؟", c: ["1973", "1974", "1972", "1975"], a: "1973" },
+            { q: "من هو النادي الذي فاز بلقب الدوري 9 مرات متتالية؟", c: ["الأهلي", "الزمالك", "الإسماعيلي", "الترسانة"], a: "الأهلي" },
+            { q: "أكبر نتيجة في تاريخ الدوري (9-0) كانت لصالح؟", c: ["المصري", "الأهلي", "الزمالك", "الترسانة"], a: "المصري" },
+            { q: "من هو أكثر لاعب شارك في مباريات الدوري المصري؟", c: ["عصام الحضري", "عبد الواحد السيد", "أحمد حسن", "حسام حسن"], a: "عصام الحضري" },
+            { q: "نادي المقاولون العرب فاز بالدوري في أي عقد؟", c: ["الثمانينات", "السبعينات", "التسعينات", "الألفينات"], a: "الثمانينات" }
+        ],
+        nicknames: [
+            { q: "الماجيكو", c: ["أبو تريكة", "بركات", "شيكابالا", "حازم إمام"], a: "أبو تريكة" },
+            { q: "السد العالي", c: ["إكرامي", "أحمد شوبير", "الحضري", "الشناوي"], a: "الحضري" },
+            { q: "الأباتشي / الفهد الأسمر", c: ["شيكابالا", "جمال حمزة", "إيمانويل", "أوكا"], a: "شيكابالا" },
+            { q: "الثعلب الصغير", c: ["حازم إمام", "حمادة إمام", "سيف زاهر", "أحمد حسن"], a: "حازم إمام" },
+            { q: "الزئبقي", c: ["محمد بركات", "سيد معوض", "أحمد فتحي", "جيلبرتو"], a: "محمد بركات" },
+            { q: "الصخرة", c: ["إبراهيم سعيد", "وائل جمعة", "بشير التابعي", "هاني رمزي"], a: "وائل جمعة" },
+            { q: "العميد", c: ["حسام حسن", "أحمد حسن", "وائل جمعة", "هاني رمزي"], a: "أحمد حسن" },
+            { q: "القناص", c: ["عماد متعب", "حسام حسن", "مصطفى محمد", "عمرو زكي"], a: "عماد متعب" },
+            { q: "البلدوزر", c: ["مجدي عبد الغني", "عمرو زكي", "مصطفى محمد", "حسام حسن"], a: "مجدي عبد الغني" },
+            { q: "العندليب", c: ["عبد الحليم علي", "جمال حمزة", "حازم إمام", "طارق السيد"], a: "عبد الحليم علي" },
+            { q: "الحاوي", c: ["وليد سليمان", "أيمن حفني", "حمودة", "أفشة"], a: "وليد سليمان" },
+            { q: "الجزار", c: ["مدحت عبد الهادي", "إبراهيم يوسف", "وائل جمعة", "حمادة صدقي"], a: "مدحت عبد الهادي" },
+            { q: "المعلم", c: ["حسن شحاتة", "الجوهري", "مانويل جوزيه", "حمادة إمام"], a: "حسن شحاتة" },
+            { q: "ملك الحركات", c: ["محمد بركات", "أبو تريكة", "شيكابالا", "متعب"], a: "محمد بركات" },
+            { q: "فخر العرب", c: ["محمد صلاح", "النني", "زيزو", "مرموش"], a: "محمد صلاح" },
+            { q: "القلب الميت", c: ["أحمد فتحي", "طارق حامد", "حسام غالي", "جمعة"], a: "أحمد فتحي" }
+        ],
+        transfers: [
+            { path: ["المقاولون", "بازل", "تشيلسي", "فيورنتينا", "روما", "ليفربول"], c: ["صلاح", "النني", "كوكا", "حجازي"], a: "صلاح" },
+            { path: ["الإسماعيلي", "الأهلي", "أندرلخت", "هال سيتي", "أستون فيلا", "طرابزون"], c: ["تريزيجيه", "المحمدي", "غالي", "حجازي"], a: "تريزيجيه" },
+            { path: ["وادي دجلة", "ليرس", "موريرينسي", "الزمالك"], c: ["زيزو", "طارق حامد", "بن شرقي", "جعفر"], a: "زيزو" },
+            { path: ["الأهلي", "ستوك سيتي", "هيديرسفيلد", "بيراميدز"], c: ["رمضان صبحي", "تريزيجيه", "طاهر", "رمضان"], a: "رمضان صبحي" },
+            { path: ["إنبي", "الأهلي", "التعاون", "الزمالك", "سيراميكا"], c: ["صالح جمعة", "كهربا", "مؤمن زكريا", "أفشة"], a: "صالح جمعة" },
+            { path: ["الزمالك", "بازل", "الاتحاد السعودي", "الزمالك", "الأهلي"], c: ["كهربا", "مؤمن زكريا", "شيكابالا", "فتوح"], a: "كهربا" },
+            { path: ["الإسماعيلي", "فيورنتينا", "روما", "الأهلي", "وست بروميتش", "الاتحاد"], c: ["حجازي", "فتحي", "السولية", "الشناوي"], a: "حجازي" },
+            { path: ["الزمالك", "جنت", "الزمالك", "التعاون", "البنك الأهلي"], c: ["مصطفى فتحي", "باسم مرسي", "عمر جابر", "فتوح"], a: "مصطفى فتحي" },
+            { path: ["الأهلي", "أندرلخت", "توتنهام", "ديربي كاونتي", "النصر", "ليرس"], c: ["حسام غالي", "ميدو", "شوقي", "المحمدي"], a: "حسام غالي" },
+            { path: ["الزمالك", "ويجان", "الزمالك", "هال سيتي", "الرائد"], c: ["عمرو زكي", "ميدو", "شيكابالا", "جمال"], a: "عمرو زكي" },
+            { path: ["إنبي", "الرجاء", "إنبي", "بيراميدز", "الأهلي"], c: ["أفشة", "السعيد", "حمدي فتحي", "شريف"], a: "أفشة" },
+            { path: ["الأهلي", "فينورد", "النجم الساحلي", "الأهلي"], c: ["حسام غالي", "أنيس بوجلبان", "حسام عاشور", "سولاري"], a: "حسام غالي" }
+        ]
+    };
+
+    function addPlayerField() {
+        const div = document.getElementById('player-inputs');
+        const input = document.createElement('input');
+        input.className = 'p-input';
+        input.placeholder = `لاعب ${div.children.length + 1}`;
+        div.appendChild(input);
+    }
+
+    function startApp() {
+        const inputs = document.querySelectorAll('.p-input');
+        inputs.forEach(i => { if(i.value.trim()) players.push({name: i.value, score: 0}); });
+        if(players.length < 2) return alert("دخل لاعبين على الأقل");
+        document.getElementById('setup-screen').classList.add('hidden');
+        document.getElementById('game-screen').classList.remove('hidden');
+        renderScores();
+    }
+
+    function renderScores() {
+        const board = document.getElementById('score-board');
+        board.innerHTML = players.map((p, i) => `
+            <div class="p-card ${i === turn ? 'active' : ''}">
+                <span>${p.name}</span><br><span class="p-score-label">${p.score}</span>
+            </div>
+        `).join('');
+    }
+
+    function startRound(cat) {
+        currentCategory = cat;
+        document.getElementById('menu-area').classList.add('hidden');
+        document.getElementById('quiz-area').classList.remove('hidden');
+        nextQuestion();
+    }
+
+    function nextQuestion() {
+        const grid = document.getElementById('choices-grid');
+        const content = document.getElementById('q-content');
+        const counter = document.getElementById('q-counter');
+        grid.innerHTML = "";
+        
+        let available = db[currentCategory].filter(q => !usedQuestions[currentCategory].includes(q));
+        
+        if(available.length === 0) {
+            alert(`مبروك! خلصتوا كل أسئلة قسم ${currentCategory}. هنبدأ الأسئلة تاني بالتبادل!`);
+            usedQuestions[currentCategory] = [];
+            available = db[currentCategory];
+        }
+
+        counter.innerText = `الأسئلة المتبقية: ${available.length}`;
+        const qData = available[Math.floor(Math.random() * available.length)];
+        
+        if(currentCategory === 'nicknames') {
+            content.innerHTML = `<h3>خمن صاحب اللقب:</h3><div class="nickname-badge">"${qData.q}"</div>`;
+        } else if(currentCategory === 'history') {
+            content.innerHTML = `<h2>${qData.q}</h2>`;
+        } else if(currentCategory === 'transfers') {
+            let tags = qData.path.map(p => `<span class="transfer-tag">⬅️ ${p}</span>`).join('');
+            content.innerHTML = `<div style="margin-bottom:10px">${tags}</div><h3>مين اللاعب؟</h3>`;
+        }
+
+        qData.c.sort(() => Math.random() - 0.5).forEach(choice => {
+            const btn = document.createElement('button');
+            btn.innerText = choice;
+            btn.onclick = () => handleAnswer(btn, choice, qData.a, qData);
+            grid.appendChild(btn);
+        });
+    }
+
+    function handleAnswer(btn, choice, correct, qObj) {
+        const buttons = document.querySelectorAll('.choices-grid button');
+        buttons.forEach(b => b.disabled = true);
+
+        if(choice === correct) {
+            btn.classList.add('correct');
+            players[turn].score += 10;
+        } else {
+            btn.classList.add('wrong');
+            buttons.forEach(b => { if(b.innerText === correct) b.classList.add('correct'); });
+        }
+
+        usedQuestions[currentCategory].push(qObj);
+
+        setTimeout(() => {
+            turn = (turn + 1) % players.length;
+            renderScores();
+            nextQuestion();
+        }, 1200);
+    }
+</script>
+</body>
+</html>

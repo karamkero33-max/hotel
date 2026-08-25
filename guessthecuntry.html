@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🌍 خمن اسم الدولة - لعبة الألغاز والرموز</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #030712;
+      --card-bg: #111827;
+      --card-border: #1f2937;
+      --amber: #f59e0b;
+      --emerald: #10b981;
+      --rose: #f43f5e;
+      --text: #f9fafb;
+      --text-muted: #9ca3af;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Tajawal', sans-serif;
+      background: radial-gradient(circle at top, #1e1b4b 0%, #030712 100%);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      user-select: none;
+    }
+    .container {
+      width: 100%;
+      max-width: 600px;
+      background: rgba(17, 24, 39, 0.9);
+      border: 1px solid var(--card-border);
+      border-radius: 24px;
+      padding: 24px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(12px);
+      text-align: center;
+    }
+    .header-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+    .badge {
+      background: rgba(245, 158, 11, 0.15);
+      color: var(--amber);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      padding: 4px 12px;
+      border-radius: 999px;
+      font-weight: 700;
+      font-size: 13px;
+    }
+    .progress-track {
+      width: 100%;
+      height: 8px;
+      background: #1f2937;
+      border-radius: 999px;
+      overflow: hidden;
+      margin-bottom: 20px;
+    }
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(to left, var(--amber), #fbbf24);
+      transition: width 0.3s ease;
+    }
+    .clues-wrapper {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 12px;
+      margin: 20px 0;
+      flex-wrap: wrap;
+    }
+    .clue-card {
+      background: #1f2937;
+      border: 1px solid #374151;
+      border-radius: 20px;
+      padding: 16px;
+      min-width: 130px;
+      flex: 1;
+      box-shadow: 0 10px 15px -3px rgba(0,0,0,0.3);
+    }
+    .clue-emoji { font-size: 56px; margin-bottom: 8px; display: block; }
+    .clue-label { font-size: 18px; font-weight: 800; color: var(--amber); }
+    .clue-sub { font-size: 11px; color: var(--text-muted); background: #111827; padding: 2px 8px; border-radius: 999px; display: inline-block; margin-top: 4px; }
+    .plus-symbol { font-size: 28px; font-weight: 900; color: var(--amber); }
+    .input-box {
+      width: 100%;
+      padding: 14px 20px;
+      font-size: 20px;
+      font-weight: 800;
+      font-family: inherit;
+      border-radius: 16px;
+      border: 2px solid #374151;
+      background: #030712;
+      color: #fff;
+      text-align: center;
+      outline: none;
+      transition: all 0.2s;
+      margin-bottom: 12px;
+    }
+    .input-box:focus { border-color: var(--amber); box-shadow: 0 0 0 3px rgba(245,158,11,0.2); }
+    .btn {
+      width: 100%;
+      padding: 14px 24px;
+      font-size: 18px;
+      font-weight: 800;
+      font-family: inherit;
+      border-radius: 14px;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-primary { background: linear-gradient(135deg, var(--amber), #d97706); color: #030712; }
+    .btn-primary:hover { opacity: 0.95; transform: translateY(-2px); }
+    .btn-success { background: linear-gradient(135deg, var(--emerald), #059669); color: #fff; }
+    .feedback-box {
+      margin-top: 16px;
+      padding: 14px;
+      border-radius: 14px;
+      font-weight: 700;
+      font-size: 15px;
+    }
+    .feedback-correct { background: rgba(16, 185, 129, 0.15); border: 1px solid var(--emerald); color: #6ee7b7; }
+    .feedback-wrong { background: rgba(244, 63, 94, 0.15); border: 1px solid var(--rose); color: #fda4af; }
+    .shake { animation: shake 0.4s; }
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      20%, 60% { transform: translateX(-8px); }
+      40%, 80% { transform: translateX(8px); }
+    }
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+  <div class="container" id="app">
+    <!-- شاشة البداية -->
+    <div id="start-screen">
+      <div style="font-size: 64px; margin-bottom: 12px;">🌍</div>
+      <h1 style="font-size: 32px; font-weight: 900; margin-bottom: 8px;">🌍 خمن اسم الدولة</h1>
+      <p style="color: var(--text-muted); margin-bottom: 24px; font-size: 16px;">
+        ادمج معاني ونطق الصور والرموز لاكتشاف أسماء 50 دولة مختلفة!
+      </p>
+      <button class="btn btn-primary" onclick="startGame()">ابدأ اللعبة</button>
+    </div>
+
+    <!-- شاشة اللعب -->
+    <div id="play-screen" class="hidden">
+      <div class="header-bar">
+        <span class="badge" id="q-counter">السؤال 1 من 50</span>
+        <span class="badge" id="score-counter">0 نقطة</span>
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill" id="progress-fill" style="width: 2%;"></div>
+      </div>
+      
+      <div class="clues-wrapper" id="clues-container"></div>
+
+      <form onsubmit="checkAnswer(event)">
+        <input type="text" id="answer-input" class="input-box" placeholder="اكتب اسم الدولة هنا..." autocomplete="off">
+        <button type="submit" id="btn-check" class="btn btn-primary">تحقق من الإجابة</button>
+        <button type="button" id="btn-next" class="btn btn-success hidden" onclick="nextQuestion()">السؤال التالي ⬅️</button>
+      </form>
+
+      <div id="feedback-area"></div>
+    </div>
+
+    <!-- شاشة النتيجة -->
+    <div id="result-screen" class="hidden">
+      <div style="font-size: 64px; margin-bottom: 12px;">🏆</div>
+      <h2 style="font-size: 28px; font-weight: 900; margin-bottom: 8px;">انتهت اللعبة! 🎉</h2>
+      <p style="color: var(--text-muted); margin-bottom: 20px;">شكراً للعبك لعبة خمن اسم الدولة!</p>
+      <div style="display: flex; gap: 12px; margin-bottom: 24px;">
+        <div class="clue-card">
+          <div style="font-size: 12px; color: var(--text-muted);">مجموع النقاط</div>
+          <div id="final-score" style="font-size: 28px; font-weight: 900; color: var(--amber);">0</div>
+        </div>
+        <div class="clue-card">
+          <div style="font-size: 12px; color: var(--text-muted);">إجابات صحيحة</div>
+          <div id="final-correct" style="font-size: 28px; font-weight: 900; color: var(--emerald);">0</div>
+        </div>
+      </div>
+      <button class="btn btn-primary" onclick="startGame()">إعادة اللعب 🔄</button>
+    </div>
+  </div>
+
+  <script>
+    const questions = [
+      { id: 1, country: 'قطر', acceptedAnswers: ['قطر', 'دولة قطر', 'القطر'], clues: [{ emoji: '🐱', label: 'قِط', subText: 'حيوان أليف' }, { emoji: '🚂', label: 'ر', subText: 'حرف الراء' }], explanation: 'قِط 🐱 + ر 🚂 = قَطَر 🇶🇦', flag: '🇶🇦' },
+      { id: 2, country: 'تركيا', acceptedAnswers: ['تركيا', 'تركي'], clues: [{ emoji: '🦃', label: 'تِركي', subText: 'Turkey' }, { emoji: '⛺', label: 'يا', subText: 'صوت (يا)' }], explanation: 'تِركي 🦃 + يا ⛺ = تُرْكِيَا 🇹🇷', flag: '🇹🇷' },
+      { id: 3, country: 'البحرين', acceptedAnswers: ['البحرين', 'بحرين'], clues: [{ emoji: '🌊', label: 'بَحْر', subText: 'مياه' }, { emoji: '🌧️', label: 'رَيْن (مطر)', subText: 'Rain' }], explanation: 'بَحْر 🌊 + رَيْن 🌧️ = البَحْرَيْن 🇧🇭', flag: '🇧🇭' },
+      { id: 4, country: 'اليابان', acceptedAnswers: ['اليابان', 'يابان'], clues: [{ emoji: '✋', label: 'يَا', subText: 'صوت (يا)' }, { emoji: '🍞', label: 'بَان (خبز)', subText: 'Pan' }], explanation: 'يَا ✋ + بَان 🍞 = اليَابَان 🇯🇵', flag: '🇯🇵' },
+      { id: 5, country: 'فرنسا', acceptedAnswers: ['فرنسا'], clues: [{ emoji: '🐎', label: 'فَرَس', subText: 'خيل' }, { emoji: '👩‍🦰', label: 'نِسَا', subText: 'نساء' }], explanation: 'فَرَس 🐎 + نِسَا 👩‍🦰 = فَرَنْسَا 🇫🇷', flag: '🇫🇷' },
+      { id: 6, country: 'كندا', acceptedAnswers: ['كندا', 'الكندا'], clues: [{ emoji: '🥫', label: 'كَان (Can)', subText: 'علبة' }, { emoji: '💊', label: 'دَاء', subText: 'دواء' }], explanation: 'كَان 🥫 + دَاء 💊 = كَنَدَا 🇨🇦', flag: '🇨🇦' },
+      { id: 7, country: 'الصين', acceptedAnswers: ['الصين', 'صين'], clues: [{ emoji: '🥢', label: 'صَحْن صِينِي', subText: 'خزف' }, { emoji: '🐟', label: 'نُون', subText: 'حرف N' }], explanation: 'صِي 🥢 + ن 🐟 = الصِّين 🇨🇳', flag: '🇨🇳' },
+      { id: 8, country: 'عمان', acceptedAnswers: ['عمان', 'عُمان', 'سلطنة عمان'], clues: [{ emoji: '👨‍🦳', label: 'عَمّ', subText: 'شقيق الأب' }, { emoji: '⏳', label: 'آن', subText: 'وقت' }], explanation: 'عَمّ 👨‍🦳 + آن ⏳ = عُمَان 🇴🇲', flag: '🇴🇲' },
+      { id: 9, country: 'السودان', acceptedAnswers: ['السودان', 'سودان'], clues: [{ emoji: '⬛', label: 'سُود (أسود)', subText: 'لون' }, { emoji: '🦪', label: 'دَان (لؤلؤ)', subText: 'دانة' }], explanation: 'سُود ⬛ + دَان 🦪 = السُّودَان 🇸🇩', flag: '🇸🇩' },
+      { id: 10, country: 'تونس', acceptedAnswers: ['تونس', 'التونس'], clues: [{ emoji: '🐟', label: 'تُونَة', subText: 'سمك' }, { emoji: '👯‍♀️', label: 'نِسْ', subText: 'نساء' }], explanation: 'تُون 🐟 + نِسْ 👯‍♀️ = تُونِس 🇹🇳', flag: '🇹🇳' },
+      { id: 11, country: 'الأردن', acceptedAnswers: ['الأردن', 'الاردن', 'أردن', 'اردن'], clues: [{ emoji: '🍚', label: 'أُرْز', subText: 'صوت (أُر)' }, { emoji: '🎵', label: 'دُنّ (نغمة)', subText: 'صوت (دُن)' }], explanation: 'أُرْ 🍚 + دُنّ 🎵 = الأُرْدُنّ 🇯🇴', flag: '🇯🇴' },
+      { id: 12, country: 'المغرب', acceptedAnswers: ['المغرب', 'مغرب'], clues: [{ emoji: '🌅', label: 'مَغْرِب', subText: 'غروب' }, { emoji: '🅱️', label: 'بَاء', subText: 'حرف الباء' }], explanation: 'مَغْرِب 🌅 + ب 🅱️ = المَغْرِب 🇲🇦', flag: '🇲🇦' },
+      { id: 13, country: 'روسيا', acceptedAnswers: ['روسيا'], clues: [{ emoji: '👤', label: 'رُوس (رأس)', subText: 'صوت (روس)' }, { emoji: '🚗', label: 'سِيَا (سيارة)', subText: 'صوت (سيا)' }], explanation: 'رُوس 👤 + سِيَا 🚗 = رُوسْيَا 🇷🇺', flag: '🇷🇺' },
+      { id: 14, country: 'إسبانيا', acceptedAnswers: ['إسبانيا', 'اسبانيا'], clues: [{ emoji: '🧷', label: 'إِسْ (S)', subText: 'مشبك' }, { emoji: '🛁', label: 'بَانْيُو', subText: 'حوض' }], explanation: 'إِسْ 🧷 + بَانْيُو 🛁 = إِسْبَانْيَا 🇪🇸', flag: '🇪🇸' },
+      { id: 15, country: 'إيطاليا', acceptedAnswers: ['إيطاليا', 'ايطاليا'], clues: [{ emoji: '🖐️', label: 'إِي (يد)', subText: 'صوت (إي)' }, { emoji: '🐑', label: 'طَلِي (خروف)', subText: 'صوت (طاليا)' }], explanation: 'إِي 🖐️ + طَالْيَا 🐑 = إِيطَالْيَا 🇮🇹', flag: '🇮🇹' },
+      { id: 16, country: 'اليونان', acceptedAnswers: ['اليونان', 'يونان'], clues: [{ emoji: '🪀', label: 'يُو يُو', subText: 'صوت (يو)' }, { emoji: '🫓', label: 'نَان (خبز)', subText: 'صوت (نان)' }], explanation: 'يُو 🪀 + نَان 🫓 = اليُونَان 🇬🇷', flag: '🇬🇷' },
+      { id: 17, country: 'البرازيل', acceptedAnswers: ['البرازيل', 'برازيل'], clues: [{ emoji: '🏜️', label: 'بَرّ', subText: 'صحراء' }, { emoji: '🦎', label: 'ذَيْل (زيل)', subText: 'صوت (زيل)' }], explanation: 'بَرّ 🏜️ + زِيل 🦎 = البَرَازِيل 🇧🇷', flag: '🇧🇷' },
+      { id: 18, country: 'الأرجنتين', acceptedAnswers: ['الأرجنتين', 'الارجنتين', 'أرجنتين'], clues: [{ emoji: '🪜', label: 'أَرْجَن (درج)', subText: 'صوت (أرجن)' }, { emoji: '🍈', label: 'تِين', subText: 'فاكهة' }], explanation: 'أَرْجَن 🪜 + تِين 🍈 = الأَرْجَنْتِين 🇦🇷', flag: '🇦🇷' },
+      { id: 19, country: 'ألمانيا', acceptedAnswers: ['ألمانيا', 'المانيا'], clues: [{ emoji: '🔋', label: 'أَلْ', subText: 'بطارية' }, { emoji: '🥭', label: 'مَانْيَا (مانجا)', subText: 'صوت (مانيا)' }], explanation: 'أَلْ 🔋 + مَانْيَا 🥭 = أَلْمَانْيَا 🇩🇪', flag: '🇩🇪' },
+      { id: 20, country: 'البرتغال', acceptedAnswers: ['البرتغال', 'برتغال'], clues: [{ emoji: '🍊', label: 'بُرْتُ (برتقال)', subText: 'فاكهة' }, { emoji: '💎', label: 'غَال (غالي)', subText: 'صوت (غال)' }], explanation: 'بُرْتُ 🍊 + غَال 💎 = البُرْتُغَال 🇵🇹', flag: '🇵🇹' },
+      { id: 21, country: 'بلجيكا', acceptedAnswers: ['بلجيكا'], clues: [{ emoji: '🐦', label: 'بَلْ (بلبل)', subText: 'طائر' }, { emoji: '🎂', label: 'جِيكَا (كيكة)', subText: 'حلوى' }], explanation: 'بَلْ 🐦 + جِيكَا 🎂 = بَلْجِيكَا 🇧🇪', flag: '🇧🇪' },
+      { id: 22, country: 'هولندا', acceptedAnswers: ['هولندا'], clues: [{ emoji: '😱', label: 'هَوْل', subText: 'خوف' }, { emoji: '💡', label: 'لَنْدَا (لمبة)', subText: 'ضوء' }], explanation: 'هَوْل 😱 + لَنْدَا 💡 = هُولَنْدَا 🇳🇱', flag: '🇳🇱' },
+      { id: 23, country: 'بولندا', acceptedAnswers: ['بولندا'], clues: [{ emoji: '⚽', label: 'بُول (Ball)', subText: 'كرة' }, { emoji: '💡', label: 'لَنْدَا (لمبة)', subText: 'ضوء' }], explanation: 'بُول ⚽ + لَنْدَا 💡 = بُولَنْدَا 🇵🇱', flag: '🇵🇱' },
+      { id: 24, country: 'المكسيك', acceptedAnswers: ['المكسيك', 'مكسيك'], clues: [{ emoji: '🥣', label: 'مِكْس (Mix)', subText: 'خلط' }, { emoji: '🔪', label: 'سِيك (سكين)', subText: 'قطع' }], explanation: 'مِكْس 🥣 + سِيك 🔪 = المَكْسِيك 🇲🇽', flag: '🇲🇽' },
+      { id: 25, country: 'بيرو', acceptedAnswers: ['بيرو', 'البيرو'], clues: [{ emoji: '🕳️', label: 'بِير (بئر)', subText: 'ماء' }, { emoji: '🕊️', label: 'رُو (روح/طائر)', subText: 'صوت (رو)' }], explanation: 'بِير 🕳️ + رُو 🕊️ = بِيرُو 🇵🇪', flag: '🇵🇪' },
+      { id: 26, country: 'تشيلي', acceptedAnswers: ['تشيلي', 'شيلي'], clues: [{ emoji: '🍵', label: 'تْشِي (شاي)', subText: 'مشروب' }, { emoji: '🌶️', label: 'لِي (فلفل تشيلي)', subText: 'حار' }], explanation: 'تْشِي 🍵 + لِي 🌶️ = تْشِيلِي 🇨🇱', flag: '🇨🇱' },
+      { id: 27, country: 'كوبا', acceptedAnswers: ['كوبا'], clues: [{ emoji: '🥛', label: 'كُوب', subText: 'كأس' }, { emoji: '👨', label: 'بَا (بابا)', subText: 'والد' }], explanation: 'كُوب 🥛 + بَا 👨 = كُوبَا 🇨🇺', flag: '🇨🇺' },
+      { id: 28, country: 'الهند', acceptedAnswers: ['الهند', 'هند'], clues: [{ emoji: '🐔', label: 'هِنْ (Hen)', subText: 'دجاجة' }, { emoji: '💊', label: 'دْ (دواء)', subText: 'حرف الدال' }], explanation: 'هِنْ 🐔 + دْ 💊 = الهِنْد 🇮🇳', flag: '🇮🇳' },
+      { id: 29, country: 'كوريا', acceptedAnswers: ['كوريا', 'كوريا الجنوبية'], clues: [{ emoji: '⚽', label: 'كُرَة', subText: 'صوت (كُر)' }, { emoji: '🖐️', label: 'يَا', subText: 'صوت (يا)' }], explanation: 'كُرَة ⚽ + يَا 🖐️ = كُورْيَا 🇰🇷', flag: '🇰🇷' },
+      { id: 30, country: 'إندونيسيا', acceptedAnswers: ['إندونيسيا', 'اندونيسيا'], clues: [{ emoji: '🍜', label: 'إِنْدُو (إندومي)', subText: 'معكرونة' }, { emoji: '🧠', label: 'نِيسْيَا (نسيان)', subText: 'ذاكرة' }], explanation: 'إِنْدُو 🍜 + نِيسْيَا 🧠 = إِنْدُونِيسْيَا 🇮🇩', flag: '🇮🇩' },
+      { id: 31, country: 'ماليزيا', acceptedAnswers: ['ماليزيا'], clues: [{ emoji: '💰', label: 'مَال', subText: 'نقود' }, { emoji: '⚛️', label: 'يِزْيَا (فيزياء)', subText: 'علم' }], explanation: 'مَال 💰 + يزْيَا ⚛️ = مَالِيزْيَا 🇲🇾', flag: '🇲🇾' },
+      { id: 32, country: 'سنغافورة', acceptedAnswers: ['سنغافورة', 'سنغافوره'], clues: [{ emoji: '🐿️', label: 'سِنْغَا (سنجاب)', subText: 'حيوان' }, { emoji: '🌋', label: 'فُورَة (بركان)', subText: 'غليان' }], explanation: 'سِنْغَا 🐿️ + فُورَة 🌋 = سِنْغَافُورَة 🇸🇬', flag: '🇸🇬' },
+      { id: 33, country: 'فيتنام', acceptedAnswers: ['فيتنام', 'فيت نام'], clues: [{ emoji: '🛢️', label: 'فِيت (Fit)', subText: 'ملاءمة' }, { emoji: '😴', label: 'نَام', subText: 'نوم' }], explanation: 'فِيت 🛢️ + نَام 😴 = فِيتْنَام 🇻🇳', flag: '🇻🇳' },
+      { id: 34, country: 'لبنان', acceptedAnswers: ['لبنان', 'اللبنان'], clues: [{ emoji: '🥛', label: 'لَبَن', subText: 'حليب' }, { emoji: '🫓', label: 'نَان', subText: 'خبز' }], explanation: 'لَبَن 🥛 + نَان 🫓 = لُبْنَان 🇱🇧', flag: '🇱🇧' },
+      { id: 35, country: 'العراق', acceptedAnswers: ['العراق', 'عراق'], clues: [{ emoji: '🌴', label: 'عِ (عرق/نخيل)', subText: 'شجر' }, { emoji: '💧', label: 'رَاق (صفاء)', subText: 'ماء عذب' }], explanation: 'عِ 🌴 + رَاق 💧 = العِرَاق 🇮🇶', flag: '🇮🇶' },
+      { id: 36, country: 'الكويت', acceptedAnswers: ['الكويت', 'كويت'], clues: [{ emoji: '👔', label: 'كَوِي', subText: 'مكواة' }, { emoji: '✋', label: 'يْت (يد)', subText: 'صوت (يت)' }], explanation: 'كَوِي 👔 + يْت ✋ = الكُوَيْت 🇰🇼', flag: '🇰🇼' },
+      { id: 37, country: 'السعودية', acceptedAnswers: ['السعودية', 'سعودية'], clues: [{ emoji: '😄', label: 'سُعُود (فرح)', subText: 'سعادة' }, { emoji: '🎁', label: 'دِيَّة (هدية)', subText: 'عطاء' }], explanation: 'سُعُود 😄 + دِيَّة 🎁 = السَّعُودِيَّة 🇸🇦', flag: '🇸🇦' },
+      { id: 38, country: 'مصر', acceptedAnswers: ['مصر', 'المصر'], clues: [{ emoji: '✂️', label: 'مَص (مقص)', subText: 'قص' }, { emoji: '🪙', label: 'صِر (صرة نقود)', subText: 'ذهب' }], explanation: 'مَص ✂️ + صِر 🪙 = مِصْر 🇪🇬', flag: '🇪🇬' },
+      { id: 39, country: 'الجزائر', acceptedAnswers: ['الجزائر', 'جزائر'], clues: [{ emoji: '🥕', label: 'جَزَر', subText: 'خضار' }, { emoji: '🧑‍💼', label: 'زَائِر', subText: 'ضيف' }], explanation: 'جَزَر 🥕 + زَائِر 🧑‍💼 = الجَزَائِر 🇩🇿', flag: '🇩🇿' },
+      { id: 40, country: 'ليبيا', acceptedAnswers: ['ليبيا'], clues: [{ emoji: '🌙', label: 'لِي (ليل)', subText: 'سماء' }, { emoji: '👶', label: 'بْيَا (بيبي)', subText: 'رضيع' }], explanation: 'لِي 🌙 + بْيَا 👶 = لِيبْيَا 🇱🇾', flag: '🇱🇾' },
+      { id: 41, country: 'موريتانيا', acceptedAnswers: ['موريتانيا'], clues: [{ emoji: '💡', label: 'مُورِي (نور)', subText: 'إضاءة' }, { emoji: '⏱️', label: 'تَانْيَا (ثانية)', subText: 'وقت' }], explanation: 'مُورِي 💡 + تَانْيَا ⏱️ = مُورِيتَانْيَا 🇲🇷', flag: '🇲🇷' },
+      { id: 42, country: 'الصومال', acceptedAnswers: ['الصومال', 'صومال'], clues: [{ emoji: '🍽️', label: 'صَوْم', subText: 'صيام' }, { emoji: '💵', label: 'مَال', subText: 'نقود' }], explanation: 'صَوْم 🍽️ + مَال 💵 = الصُّومَال 🇸🇴', flag: '🇸🇴' },
+      { id: 43, country: 'جزر القمر', acceptedAnswers: ['جزر القمر', 'القمر'], clues: [{ emoji: '🏝️', label: 'جُزُر', subText: 'بحر' }, { emoji: '🌕', label: 'قَمَر', subText: 'بدر' }], explanation: 'جُزُر 🏝️ + قَمَر 🌕 = جُزُر القَمَر 🇰🇲', flag: '🇰🇲' },
+      { id: 44, country: 'أستراليا', acceptedAnswers: ['أستراليا', 'استراليا'], clues: [{ emoji: '👨‍🏫', label: 'أُوسْت (أستاذ)', subText: 'معلم' }, { emoji: '🏎️', label: 'رَالْيَا (رالي)', subText: 'سباق' }], explanation: 'أُوسْت 👨‍🏫 + رَالْيَا 🏎️ = أُسْتْرَالْيَا 🇦🇺', flag: '🇦🇺' },
+      { id: 45, country: 'نيوزيلندا', acceptedAnswers: ['نيوزيلندا', 'نيوزيلاند'], clues: [{ emoji: '🆕', label: 'نِيُو (New)', subText: 'جديد' }, { emoji: '🏝️', label: 'زِيلَنْدَا', subText: 'جزيرة' }], explanation: 'نِيُو 🆕 + زِيلَنْدَا 🏝️ = نِيُوزِيلَنْدَا 🇳🇿', flag: '🇳🇿' },
+      { id: 46, country: 'النرويج', acceptedAnswers: ['النرويج', 'نرويج'], clues: [{ emoji: '🌟', label: 'نُور', subText: 'ضياء' }, { emoji: '🛣️', label: 'وِيج (Way)', subText: 'طريق' }], explanation: 'نُور 🌟 + وِيج 🛣️ = النَّرْوِيج 🇳🇴', flag: '🇳🇴' },
+      { id: 47, country: 'السويد', acceptedAnswers: ['السويد', 'سويد'], clues: [{ emoji: '🌊', label: 'سُو (ماء)', subText: 'عذب' }, { emoji: '🌹', label: 'وِيد (ورد)', subText: 'زهر' }], explanation: 'سُو 🌊 + وِيد 🌹 = السُّوِيد 🇸🇪', flag: '🇸🇪' },
+      { id: 48, country: 'فنلندا', acceptedAnswers: ['فنلندا'], clues: [{ emoji: '🎨', label: 'فَنّ', subText: 'رسم' }, { emoji: '💡', label: 'لَنْدَا', subText: 'لمبة' }], explanation: 'فَنّ 🎨 + لَنْدَا 💡 = فِنْلَنْدَا 🇫🇮', flag: '🇫🇮' },
+      { id: 49, country: 'سويسرا', acceptedAnswers: ['سويسرا'], clues: [{ emoji: '🍰', label: 'سُوِيس (كعكة)', subText: 'حلوى' }, { emoji: '🚩', label: 'رَا (راية)', subText: 'علم' }], explanation: 'سُوِيس 🍰 + رَا 🚩 = سُوِيسْرَا 🇨🇭', flag: '🇨🇭' },
+      { id: 50, country: 'النمسا', acceptedAnswers: ['النمسا', 'نمسا'], clues: [{ emoji: '🦦', label: 'نِمْس', subText: 'حيوان' }, { emoji: '🏜️', label: 'سَا (تراب)', subText: 'أرض' }], explanation: 'نِمْس 🦦 + سَا 🏜️ = النَّمْسَا 🇦🇹', flag: '🇦🇹' }
+    ];
+
+    let currentIndex = 0;
+    let score = 0;
+    let correctCount = 0;
+
+    function normalize(text) {
+      if (!text) return '';
+      return text.trim().toLowerCase()
+        .replace(/[\u064B-\u065F\u0670]/g, '')
+        .replace(/[أإآٱ]/g, 'ا')
+        .replace(/ى/g, 'ي')
+        .replace(/ة/g, 'ه')
+        .replace(/[^\u0600-\u06FFa-zA-Z0-9\s]/g, ' ')
+        .replace(/\s+/g, ' ').trim();
+    }
+
+    function isMatch(user, target, accepted = []) {
+      const u = normalize(user);
+      const all = [target, ...accepted];
+      for (const t of all) {
+        const normT = normalize(t);
+        if (u === normT) return true;
+        const stripAl = (s) => (s.startsWith('ال') && s.length > 3 ? s.slice(2) : s);
+        if (stripAl(u) === stripAl(normT)) return true;
+        if ('ال' + stripAl(u) === normT || stripAl(u) === 'ال' + normT) return true;
+      }
+      return false;
+    }
+
+    function startGame() {
+      currentIndex = 0;
+      score = 0;
+      correctCount = 0;
+      document.getElementById('start-screen').classList.add('hidden');
+      document.getElementById('result-screen').classList.add('hidden');
+      document.getElementById('play-screen').classList.remove('hidden');
+      loadQuestion();
+    }
+
+    function loadQuestion() {
+      const q = questions[currentIndex];
+      document.getElementById('q-counter').innerText = 'السؤال ' + (currentIndex + 1) + ' من ' + questions.length;
+      document.getElementById('score-counter').innerText = score + ' نقطة';
+      document.getElementById('progress-fill').style.width = (((currentIndex + 1) / questions.length) * 100) + '%';
+      
+      const cluesHTML = q.clues.map((c, i) => `
+        <div class="clue-card">
+          <span class="clue-emoji">${c.emoji}</span>
+          <div class="clue-label">${c.label}</div>
+          ${c.subText ? `<div class="clue-sub">${c.subText}</div>` : ''}
+        </div>
+        ${i < q.clues.length - 1 ? '<div class="plus-symbol">+</div>' : ''}
+      `).join('');
+
+      document.getElementById('clues-container').innerHTML = cluesHTML;
+      const input = document.getElementById('answer-input');
+      input.value = '';
+      input.disabled = false;
+      input.focus();
+      document.getElementById('btn-check').classList.remove('hidden');
+      document.getElementById('btn-next').classList.add('hidden');
+      document.getElementById('feedback-area').innerHTML = '';
+    }
+
+    function checkAnswer(e) {
+      if (e) e.preventDefault();
+      const input = document.getElementById('answer-input');
+      const val = input.value.trim();
+      if (!val) return;
+
+      const q = questions[currentIndex];
+      if (isMatch(val, q.country, q.acceptedAnswers)) {
+        score += 100;
+        correctCount++;
+        document.getElementById('score-counter').innerText = score + ' نقطة';
+        input.disabled = true;
+        document.getElementById('btn-check').classList.add('hidden');
+        document.getElementById('btn-next').classList.remove('hidden');
+        document.getElementById('feedback-area').innerHTML = `
+          <div class="feedback-box feedback-correct">
+            <div>إجابة صحيحة ✅</div>
+            <div style="font-size: 20px; margin: 4px 0;">${q.flag} <strong>${q.country}</strong></div>
+            <div style="font-size: 13px;">💡 ${q.explanation}</div>
+          </div>
+        `;
+      } else {
+        input.classList.add('shake');
+        setTimeout(() => input.classList.remove('shake'), 400);
+        document.getElementById('feedback-area').innerHTML = `
+          <div class="feedback-box feedback-wrong">إجابة خاطئة ❌ حاول مرة أخرى!</div>
+        `;
+      }
+    }
+
+    function nextQuestion() {
+      if (currentIndex + 1 < questions.length) {
+        currentIndex++;
+        loadQuestion();
+      } else {
+        showResults();
+      }
+    }
+
+    function showResults() {
+      document.getElementById('play-screen').classList.add('hidden');
+      document.getElementById('result-screen').classList.remove('hidden');
+      document.getElementById('final-score').innerText = score;
+      document.getElementById('final-correct').innerText = correctCount + ' / ' + questions.length;
+    }
+  </script>
+</body>
+</html>

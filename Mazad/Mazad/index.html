@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>تحدي المزاد المصري - نسخة المذيع</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <h1>🏆 تحدي المزاد المصري 🏆</h1>
+    <p class="sub-title">نسخة المذيع (الأهلي والزمالك - من الحارس للمهاجم)</p>
+
+    <div id="turn-banner" class="turn-banner p1-turn">
+      دور اللاعب الأول: ابدأ بسحب لاعب عشوائي 🎲
+    </div>
+
+    <div class="admin-panel">
+      <div id="current-player">اضغط "🎲 لاعب عشوائي" للبدء</div>
+
+      <button class="btn btn-rand" id="reveal-btn" onclick="showRandomPlayer()">
+        🎲 لاعب عشوائي
+      </button>
+
+      <div class="admin-row">
+        <div class="bids-wrapper">
+          <div class="bid-box">
+            <label>مزايدة اللاعب الأول (M): </label>
+            <input type="number" id="bid_price_1" value="0" min="0" />
+          </div>
+          <div class="bid-box">
+            <label>مزايدة اللاعب الثاني (M): </label>
+            <input type="number" id="bid_price_2" value="0" min="0" />
+          </div>
+        </div>
+        <div>
+          <button class="btn btn-resolve" onclick="resolveAuction()">
+            إتمام المزاد 🔨
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="teams-container">
+      <div class="team-box">
+        <h2>اللاعب الأول</h2>
+        <div class="budget">الميزانية: <span id="budget_1">100</span>M</div>
+        <div class="player-list" id="list_1"></div>
+      </div>
+
+      <div class="team-box">
+        <h2>اللاعب الثاني</h2>
+        <div class="budget">الميزانية: <span id="budget_2">100</span>M</div>
+        <div class="player-list" id="list_2"></div>
+      </div>
+    </div>
+
+    <br /><br />
+
+    <button class="btn btn-rand" onclick="predictWinner()">
+      🤖 توقع الذكاء الاصطناعي
+    </button>
+
+    <div
+      id="prediction"
+      style="
+        margin-top: 20px;
+        font-size: 22px;
+        background: #1c2541;
+        padding: 20px;
+        border-radius: 12px;
+        max-width: 700px;
+        margin-left: auto;
+        margin-right: auto;
+      "
+    ></div>
+
+    <div class="luck-section">
+      <button class="btn btn-rand btn-luck" onclick="drawCard()">
+        🃏 اسحب كارت الحظ
+      </button>
+
+      <div id="luckCard" class="card-container">
+        <div id="cardIcon">❓</div>
+        <h3 id="cardTitle">اضغط لسحب كارت</h3>
+        <p id="cardDesc">هل حظك اليوم جيد أم سيء؟ جرب الآن!</p>
+      </div>
+    </div>
+
+    <script src="script2.js"></script>
+  </body>
+</html>

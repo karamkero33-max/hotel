@@ -1,0 +1,425 @@
+/* =========================================================
+   تنسيقات شجرة كأس العالم 2026 - Full Bracket Tree UI
+   ========================================================= */
+
+:root {
+  --bg-primary: #0a0712;
+  --bg-secondary: #140d24;
+  --bg-card: rgba(26, 18, 43, 0.75);
+  --bg-card-hover: rgba(38, 26, 63, 0.9);
+  
+  --accent-gold: #f59e0b;
+  --accent-gold-glow: rgba(245, 158, 11, 0.4);
+  --accent-gold-gradient: linear-gradient(135deg, #fbbf24 0%, #d97706 100%);
+  
+  --accent-green: #10b981;
+  --accent-green-glow: rgba(16, 185, 129, 0.45);
+  --accent-green-gradient: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  
+  --text-main: #f8fafc;
+  --text-muted: #a78bfa;
+  --text-dim: #64748b;
+  
+  --border-color: rgba(255, 255, 255, 0.12);
+  --border-highlight: rgba(245, 158, 11, 0.5);
+  
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: 'Cairo', sans-serif;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  background: var(--bg-primary);
+  background-image: 
+    radial-gradient(circle at 50% 25%, rgba(139, 92, 246, 0.15) 0%, transparent 60%),
+    radial-gradient(circle at 10% 80%, rgba(245, 158, 11, 0.1) 0%, transparent 40%),
+    radial-gradient(circle at 90% 80%, rgba(239, 68, 68, 0.1) 0%, transparent 40%);
+  background-attachment: fixed;
+  color: var(--text-main);
+  min-height: 100vh;
+  padding: 15px;
+  direction: rtl;
+  overflow-x: auto;
+}
+
+.app-container {
+  max-width: 1600px;
+  margin: 0 auto;
+  padding-bottom: 40px;
+}
+
+/* --- Top Header --- */
+.header {
+  text-align: center;
+  padding: 20px 10px;
+  margin-bottom: 25px;
+}
+
+.badge-tournament {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(245, 158, 11, 0.15);
+  color: var(--accent-gold);
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  padding: 5px 16px;
+  border-radius: 50px;
+  font-size: 13px;
+  font-weight: 700;
+  margin-bottom: 12px;
+  box-shadow: 0 0 15px rgba(245, 158, 11, 0.2);
+}
+
+.header h1 {
+  font-size: 38px;
+  font-weight: 900;
+  background: linear-gradient(135deg, #ffffff 0%, #cbd5e1 40%, var(--accent-gold) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 6px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.header p {
+  color: #c4b5fd;
+  font-size: 15px;
+  max-width: 650px;
+  margin: 0 auto;
+}
+
+/* --- Action Controls Top --- */
+.top-controls {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 30px;
+  flex-wrap: wrap;
+}
+
+.btn-control {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--border-color);
+  color: var(--text-main);
+  padding: 10px 22px;
+  border-radius: 50px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-control:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.3);
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
+}
+
+.btn-control.primary {
+  background: var(--accent-gold-gradient);
+  color: #000;
+  border: none;
+  box-shadow: 0 0 20px rgba(245, 158, 11, 0.3);
+}
+
+.btn-control.primary:hover {
+  transform: translateY(-2px) scale(1.03);
+  box-shadow: 0 0 30px rgba(245, 158, 11, 0.5);
+}
+
+/* --- Full Bracket Tree Layout --- */
+.bracket-tree-wrapper {
+  overflow-x: auto;
+  padding: 20px 10px;
+}
+
+.bracket-tree {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(260px, 320px) minmax(0, 1fr);
+  align-items: stretch;
+  gap: 20px;
+  min-width: 1320px;
+  direction: ltr; /* Ensure Left Side is on Left, Right Side on Right */
+}
+
+.bracket-side {
+  display: flex;
+  gap: 18px;
+  justify-content: space-between;
+  min-width: 0;
+}
+
+.bracket-side.left-side,
+.bracket-side.right-side {
+  justify-content: flex-start;
+}
+
+.bracket-column {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  gap: 20px;
+  flex: 1;
+  min-width: 190px;
+  max-width: 220px;
+}
+
+.col-header {
+  text-align: center;
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--accent-gold);
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  padding: 6px;
+  border-radius: var(--radius-sm);
+  margin-bottom: 5px;
+  letter-spacing: 0.5px;
+  direction: rtl;
+}
+
+/* --- Match Box in Tree --- */
+.tree-match-box {
+  background: var(--bg-card);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 10px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+  transition: all 0.3s ease;
+  direction: rtl; /* Arabic text inside */
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  position: relative;
+}
+
+.tree-match-box:hover {
+  border-color: rgba(255, 255, 255, 0.25);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6);
+}
+
+.match-info-header {
+  font-size: 11px;
+  color: #c4b5fd;
+  background: rgba(0, 0, 0, 0.45);
+  padding: 4px 8px;
+  border-radius: 4px;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.team-slot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-main);
+  user-select: none;
+  min-height: 40px;
+}
+
+.team-slot:hover:not(.empty) {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
+  transform: scale(1.02);
+}
+
+.team-slot.empty {
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px dashed rgba(255, 255, 255, 0.1);
+  color: var(--text-dim);
+  cursor: default;
+  justify-content: center;
+  font-weight: 500;
+}
+
+.team-slot.selected {
+  background: var(--accent-green-gradient);
+  color: #fff;
+  border-color: #059669;
+  box-shadow: 0 0 15px rgba(16, 185, 129, 0.4);
+  font-weight: 800;
+}
+
+.team-slot.selected::after {
+  content: '✓';
+  font-size: 12px;
+  background: rgba(255, 255, 255, 0.25);
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 5px;
+}
+
+.slot-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.slot-flag {
+  font-size: 18px;
+  line-height: 1;
+}
+
+/* --- Center Trophy & Final Area --- */
+.bracket-center {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-width: 260px;
+  max-width: 300px;
+  padding: 0 10px;
+  gap: 20px;
+  direction: rtl;
+}
+
+.center-trophy-area {
+  text-align: center;
+  position: relative;
+}
+
+.big-trophy {
+  font-size: 90px;
+  animation: bounceTrophy 3s infinite ease-in-out;
+  filter: drop-shadow(0 10px 25px rgba(245, 158, 11, 0.6));
+  z-index: 2;
+  position: relative;
+}
+
+.trophy-glow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 140px;
+  height: 140px;
+  background: radial-gradient(circle, rgba(245, 158, 11, 0.35) 0%, transparent 70%);
+  border-radius: 50%;
+  animation: pulseGlow 2s infinite alternate;
+  z-index: 1;
+}
+
+.final-match-box {
+  background: linear-gradient(135deg, rgba(30, 20, 50, 0.9) 0%, rgba(20, 15, 35, 0.95) 100%);
+  border: 2px solid var(--accent-gold);
+  border-radius: var(--radius-lg);
+  padding: 15px;
+  width: 100%;
+  box-shadow: 0 0 30px rgba(245, 158, 11, 0.25);
+}
+
+.final-title {
+  text-align: center;
+  font-size: 15px;
+  font-weight: 900;
+  color: var(--accent-gold);
+  margin-bottom: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.champion-card {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.25) 0%, rgba(16, 185, 129, 0.2) 100%);
+  border: 2px solid #10b981;
+  border-radius: var(--radius-lg);
+  padding: 15px 20px;
+  text-align: center;
+  width: 100%;
+  box-shadow: 0 0 35px rgba(16, 185, 129, 0.4);
+  animation: scaleUp 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.champ-badge {
+  font-size: 13px;
+  font-weight: 800;
+  color: #34d399;
+  margin-bottom: 8px;
+  display: block;
+}
+
+.champ-flag-big {
+  font-size: 48px;
+  display: block;
+  margin-bottom: 5px;
+  filter: drop-shadow(0 4px 8px rgba(0,0,0,0.5));
+}
+
+.champ-name-big {
+  font-size: 26px;
+  font-weight: 900;
+  color: #fff;
+  text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+}
+
+/* --- Confetti Canvas --- */
+#confetti-canvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1000;
+}
+
+/* --- Animations --- */
+@keyframes bounceTrophy {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes pulseGlow {
+  0% { transform: translate(-50%, -50%) scale(0.9); opacity: 0.6; }
+  100% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
+}
+
+@keyframes scaleUp {
+  from { opacity: 0; transform: scale(0.85); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+/* --- Scrollbar Custom --- */
+::-webkit-scrollbar {
+  height: 10px;
+  width: 10px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-primary);
+}
+::-webkit-scrollbar-thumb {
+  background: #3b2d54;
+  border-radius: 5px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-gold);
+}

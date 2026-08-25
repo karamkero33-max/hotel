@@ -1,0 +1,472 @@
+import React, { useState, useEffect } from 'react';
+import { soundFx } from '../../utils/sound';
+
+interface QuestionItem {
+  teamEn: string;
+  teamAr: string;
+  aliases: string[];
+  clubs: string[];
+}
+
+export const NationalTeamQuiz: React.FC = () => {
+  const LOGOS: Record<string, string> = {
+    "Real Madrid": "https://upload.wikimedia.org/wikipedia/en/thumb/5/56/Real_Madrid_CF.svg/120px-Real_Madrid_CF.svg.png",
+    "Barcelona": "https://upload.wikimedia.org/wikipedia/en/thumb/4/47/FC_Barcelona_%28crest%29.svg/120px-FC_Barcelona_%28crest%29.svg.png",
+    "Man City": "https://upload.wikimedia.org/wikipedia/en/thumb/e/eb/Manchester_City_FC_badge.svg/120px-Manchester_City_FC_badge.svg.png",
+    "Man Utd": "https://upload.wikimedia.org/wikipedia/en/thumb/7/7a/Manchester_United_FC_crest.svg/120px-Manchester_United_FC_crest.svg.png",
+    "Liverpool": "https://upload.wikimedia.org/wikipedia/en/thumb/0/0c/Liverpool_FC.svg/120px-Liverpool_FC.svg.png",
+    "Arsenal": "https://upload.wikimedia.org/wikipedia/en/thumb/5/33/Arsenal_FC.svg/120px-Arsenal_FC.svg.png",
+    "Chelsea": "https://upload.wikimedia.org/wikipedia/en/thumb/c/cc/Chelsea_FC.svg/120px-Chelsea_FC.svg.png",
+    "Bayern": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1b/FC_Bayern_M%C3%BCnchen_logo_%282017%29.svg/120px-FC_Bayern_M%C3%BCnchen_logo_%282017%29.svg.png",
+    "PSG": "https://upload.wikimedia.org/wikipedia/en/thumb/a/a7/Paris_Saint-Germain_F.C..svg/120px-Paris_Saint-Germain_F.C..svg.png",
+    "Milan": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d0/AC_Milan_logo.svg/120px-AC_Milan_logo.svg.png",
+    "Inter": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/05/FC_Internazionale_Milano_2021.svg/120px-FC_Internazionale_Milano_2021.svg.png",
+    "Juve": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/bc/Juventus_FC_2017_icon_%28black%29.svg/120px-Juventus_FC_2017_icon_%28black%29.svg.png",
+    "Tottenham": "https://upload.wikimedia.org/wikipedia/en/thumb/b/b4/Tottenham_Hotspur.svg/120px-Tottenham_Hotspur.svg.png",
+    "Atletico": "https://upload.wikimedia.org/wikipedia/en/thumb/f/f4/Atletico_Madrid_2017_logo.svg/120px-Atletico_Madrid_2017_logo.svg.png",
+    "Ahli": "https://upload.wikimedia.org/wikipedia/en/thumb/0/0b/Al-Ahli_Saudi_FC_logo.svg/120px-Al-Ahli_Saudi_FC_logo.svg.png",
+    "Nassr": "https://upload.wikimedia.org/wikipedia/en/thumb/0/05/Al_Nassr_FC_logo.svg/120px-Al_Nassr_FC_logo.svg.png",
+    "Hilal": "https://upload.wikimedia.org/wikipedia/en/thumb/b/be/Al-Hilal_Saudi_FC_logo.svg/120px-Al-Hilal_Saudi_FC_logo.svg.png",
+    "Ahly": "https://upload.wikimedia.org/wikipedia/en/thumb/a/af/Al_Ahly_SC_logo.svg/120px-Al_Ahly_SC_logo.svg.png",
+    "Leverkusen": "https://upload.wikimedia.org/wikipedia/en/thumb/5/59/Bayer_04_Leverkusen_logo.svg/120px-Bayer_04_Leverkusen_logo.svg.png",
+    "Lyon": "https://upload.wikimedia.org/wikipedia/en/thumb/c/c6/Olympique_Lyonnais_crest.svg/120px-Olympique_Lyonnais_crest.svg.png",
+    "Monaco": "https://upload.wikimedia.org/wikipedia/en/thumb/9/9e/AS_Monaco_FC.svg/120px-AS_Monaco_FC.svg.png",
+    "Everton": "https://upload.wikimedia.org/wikipedia/en/thumb/7/7c/Everton_FC_logo.svg/120px-Everton_FC_logo.svg.png",
+    "West Ham": "https://upload.wikimedia.org/wikipedia/en/thumb/c/c2/West_Ham_United_FC_logo.svg/120px-West_Ham_United_FC_logo.svg.png",
+    "Aston Villa": "https://upload.wikimedia.org/wikipedia/en/thumb/f/f9/Aston_Villa_FC_crest_%282024%29.svg/120px-Aston_Villa_FC_crest_%282024%29.svg.png",
+    "Miami": "https://upload.wikimedia.org/wikipedia/en/thumb/5/5c/Inter_Miami_CF_logo.svg/120px-Inter_Miami_CF_logo.svg.png",
+    "Napoli": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2d/SSC_Napoli_2021.svg/120px-SSC_Napoli_2021.svg.png",
+    "Roma": "https://upload.wikimedia.org/wikipedia/en/thumb/f/f7/AS_Roma_logo_%282017%29.svg/120px-AS_Roma_logo_%282017%29.svg.png",
+    "Villareal": "https://upload.wikimedia.org/wikipedia/en/thumb/7/70/Villarreal_CF_logo.svg/120px-Villarreal_CF_logo.svg.png",
+    "Sunderland": "https://upload.wikimedia.org/wikipedia/en/thumb/7/77/Sunderland_AFC_logo.svg/120px-Sunderland_AFC_logo.svg.png",
+    "Como": "https://upload.wikimedia.org/wikipedia/en/thumb/d/d4/Como_1907_logo.svg/120px-Como_1907_logo.svg.png",
+    "River Plate": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ac/Escudo_del_C_A_River_Plate.svg/120px-Escudo_del_C_A_River_Plate.svg.png",
+    "Benfica": "https://upload.wikimedia.org/wikipedia/en/thumb/a/a2/SL_Benfica_logo.svg/120px-SL_Benfica_logo.svg.png",
+    "Lille": "https://upload.wikimedia.org/wikipedia/en/thumb/3/3f/Lille_OSC_2018_logo.svg/120px-Lille_OSC_2018_logo.svg.png",
+    "SCP": "https://upload.wikimedia.org/wikipedia/en/thumb/e/e1/Sporting_Clube_de_Portugal_%28logo%29.svg/120px-Sporting_Clube_de_Portugal_%28logo%29.svg.png",
+    "Brighton": "https://upload.wikimedia.org/wikipedia/en/thumb/f/fd/Brighton_%26_Hove_Albion_logo.svg/120px-Brighton_%26_Hove_Albion_logo.svg.png",
+    "Eintracht": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/04/Eintracht_Frankfurt_Logo.svg/120px-Eintracht_Frankfurt_Logo.svg.png"
+  };
+
+  const QUESTIONS: QuestionItem[] = [
+    { teamEn: "Senegal", teamAr: "السنغال", aliases: ["senegal", "السنغال"], clubs: ["Ahli", "Hilal", "Lyon", "Everton", "West Ham", "Monaco", "Tottenham", "Villareal", "Nassr", "Bayern", "Everton"] },
+    { teamEn: "Argentina", teamAr: "الأرجنتين", aliases: ["argentina", "الارجنتين", "الأرجنتين"], clubs: ["Aston Villa", "Atletico", "Tottenham", "River Plate", "Lyon", "Liverpool", "Chelsea", "Atletico", "Miami", "Inter", "Como"] },
+    { teamEn: "France", teamAr: "فرنسا", aliases: ["france", "فرنسا"], clubs: ["Milan", "Arsenal", "Bayern", "Real Madrid", "Milan", "PSG", "Real Madrid", "Real Madrid", "PSG", "Inter", "Bayern"] },
+    { teamEn: "England", teamAr: "إنجلترا", aliases: ["england", "انجلترا", "إنجلترا"], clubs: ["Everton", "Man City", "Man City", "Arsenal", "Aston Villa", "Arsenal", "Real Madrid", "Chelsea", "Man City", "Bayern", "Aston Villa"] },
+    { teamEn: "Morocco", teamAr: "المغرب", aliases: ["morocco", "المغرب"], clubs: ["Hilal", "PSG", "Man Utd", "Real Madrid", "Leverkusen", "Monaco", "Villareal", "Nassr", "Galatasaray", "Fenerbahce", "Real Madrid"] },
+    { teamEn: "Spain", teamAr: "إسبانيا", aliases: ["spain", "اسبانيا", "إسبانيا"], clubs: ["Arsenal", "Real Madrid", "Man City", "Barcelona", "Barcelona", "PSG", "Sociedad", "Milan", "Barcelona", "Leipzig", "Chelsea"] },
+    { teamEn: "Brazil", teamAr: "البرازيل", aliases: ["brazil", "البرازيل"], clubs: ["Man City", "Real Madrid", "Arsenal", "PSG", "Juve", "Newcastle", "Monaco", "West Ham", "Real Madrid", "Real Madrid", "Barcelona"] },
+    { teamEn: "Portugal", teamAr: "البرتغال", aliases: ["portugal", "البرتغال"], clubs: ["Al-Hilal", "Man City", "Man Utd", "PSG", "Milan", "PSG", "Man City", "Nassr", "Bayern", "Liverpool", "Juve"] },
+    { teamEn: "Germany", teamAr: "ألمانيا", aliases: ["germany", "المانيا", "ألمانيا"], clubs: ["Barcelona", "Real Madrid", "Bayern", "Leverkusen", "Arsenal", "Bayern", "Bayern", "Leverkusen", "West Ham", "Dortmund", "Stuttgart"] },
+    { teamEn: "Italy", teamAr: "إيطاليا", aliases: ["italy", "ايطاليا", "إيطاليا"], clubs: ["PSG", "Arsenal", "Tottenham", "Inter", "Juve", "Inter", "Napoli", "Inter", "Atalanta", "Juve", "Roma"] },
+    { teamEn: "Netherlands", teamAr: "هولندا", aliases: ["netherlands", "هولندا"], clubs: ["Brighton", "Liverpool", "Bayern", "Man Utd", "Arsenal", "Leverkusen", "Milan", "Girona", "Liverpool", "Liverpool", "Man Utd"] },
+    { teamEn: "Egypt", teamAr: "مصر", aliases: ["egypt", "مصر"], clubs: ["Ahly", "Nice", "Ahly", "Al-Wahda", "Ahly", "Frankfurt", "Ahly", "Trabzonspor", "Liverpool", "Nantes", "Ahly"] },
+    { teamEn: "Saudi Arabia", teamAr: "السعودية", aliases: ["saudi arabia", "السعودية"], clubs: ["Hilal", "Nassr", "Hilal", "Ahli", "Nassr", "Hilal", "Hilal", "Ahli", "Hilal", "Nassr", "Hilal"] },
+    { teamEn: "Uruguay", teamAr: "أوروغواي", aliases: ["uruguay", "اوروجواي", "أوروغواي", "اورغواي"], clubs: ["Inter", "Barcelona", "Atletico", "Napoli", "PSG", "Real Madrid", "Tottenham", "Liverpool", "Man Utd", "Flamengo", "Miami"] },
+    { teamEn: "Belgium", teamAr: "بلجيكا", aliases: ["belgium", "بلجيكا"], clubs: ["Real Madrid", "Man City", "Arsenal", "Aston Villa", "Leipzig", "Everton", "Man City", "Roma", "Rennes", "Lyon", "Milan"] },
+    { teamEn: "Croatia", teamAr: "كرواتيا", aliases: ["croatia", "كرواتيا"], clubs: ["Fenerbahce", "Man City", "Ajax", "Lyon", "Man City", "Real Madrid", "Chelsea", "Atalanta", "Benfica", "Hoffenheim", "Osasuna"] },
+    { teamEn: "Turkey", teamAr: "تركيا", aliases: ["turkey", "تركيا"], clubs: ["Man Utd", "Juve", "Galatasaray", "Benfica", "Real Madrid", "Inter", "Benfica", "Dortmund", "Lille", "Fenerbahce", "Bournemouth"] },
+    { teamEn: "Japan", teamAr: "اليابان", aliases: ["japan", "اليابان"], clubs: ["Parma", "Arsenal", "Monaco", "Gladbach", "Sociedad", "Liverpool", "Brighton", "Dortmund", "Lazio", "Feyenoord", "Celtic"] },
+    { teamEn: "USA", teamAr: "أمريكا", aliases: ["usa", "امريكا", "أمريكا", "الولايات المتحدة"], clubs: ["Forest", "Juve", "Lyon", "PSV", "Milan", "Juve", "Monaco", "PSV", "Coventry", "Haji", "Norwich"] },
+    { teamEn: "Norway", teamAr: "النرويج", aliases: ["norway", "النرويج"], clubs: ["Sevilla", "Arsenal", "Napoli", "Benfica", "Man City", "Atletico", "Dortmund", "Celta", "Leipzig", "Sociedad", "Man City"] }
+  ];
+
+  const POSITIONS = [
+    { t: 82, l: 45 }, // GK
+    { t: 65, l: 15 }, { t: 68, l: 35 }, { t: 68, l: 55 }, { t: 65, l: 75 }, // DEF
+    { t: 45, l: 25 }, { t: 42, l: 45 }, { t: 45, l: 65 }, // MID
+    { t: 18, l: 20 }, { t: 12, l: 45 }, { t: 18, l: 70 }  // FW
+  ];
+
+  const [screen, setScreen] = useState<'credits' | 'names' | 'playing' | 'result'>('credits');
+
+  const [players, setPlayers] = useState([
+    { name: 'اللاعب 1', score: 0, lives: 3 },
+    { name: 'اللاعب 2', score: 0, lives: 3 }
+  ]);
+  const [p1Input, setP1Input] = useState('اللاعب 1');
+  const [p2Input, setP2Input] = useState('اللاعب 2');
+
+  const [currentPIdx, setCurrentPIdx] = useState<number>(0);
+  const [roundIdx, setRoundIdx] = useState<number>(0);
+  const [timeLeft, setTimeLeft] = useState<number>(30);
+  const [isTimerRunning, setIsTimerRunning] = useState<boolean>(false);
+
+  const [answerInput, setAnswerInput] = useState<string>('');
+  const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [feedbackMsg, setFeedbackMsg] = useState<{ text: string; type: 'correct' | 'wrong' } | null>(null);
+
+  useEffect(() => {
+    let interval: NodeJS.Timeout | null = null;
+    if (screen === 'playing' && isTimerRunning && timeLeft > 0) {
+      interval = setInterval(() => {
+        setTimeLeft(prev => {
+          if (prev <= 1) {
+            setIsTimerRunning(false);
+            handleTimeOut();
+            return 0;
+          }
+          if (prev <= 10) soundFx.playTick();
+          return prev - 1;
+        });
+      }, 1000);
+    }
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [screen, isTimerRunning, timeLeft]);
+
+  useEffect(() => {
+    if (!answerInput.trim()) {
+      setSuggestions([]);
+      return;
+    }
+    const query = answerInput.trim().toLowerCase();
+    const matches: string[] = [];
+    QUESTIONS.forEach(q => {
+      if (q.teamEn.toLowerCase().startsWith(query) || q.teamAr.toLowerCase().startsWith(query)) {
+        if (!matches.includes(q.teamAr)) matches.push(q.teamAr);
+      }
+    });
+    setSuggestions(matches);
+  }, [answerInput]);
+
+  const handleStartGame = () => {
+    soundFx.playClick();
+    setPlayers([
+      { name: p1Input.trim() || 'اللاعب 1', score: 0, lives: 3 },
+      { name: p2Input.trim() || 'اللاعب 2', score: 0, lives: 3 }
+    ]);
+    setRoundIdx(0);
+    setCurrentPIdx(0);
+    setTimeLeft(30);
+    setAnswerInput('');
+    setFeedbackMsg(null);
+    setScreen('playing');
+    setIsTimerRunning(true);
+  };
+
+  const handleTimeOut = () => {
+    soundFx.playAlarm();
+    soundFx.playWrong();
+    const currentQ = QUESTIONS[roundIdx];
+
+    setFeedbackMsg({
+      text: `انتهى الوقت! ⏱️ الإجابة الصحيحة كانت: ${currentQ.teamAr} (${currentQ.teamEn})`,
+      type: 'wrong'
+    });
+
+    deductLifeAndAdvance();
+  };
+
+  const deductLifeAndAdvance = () => {
+    setPlayers(prev => {
+      const next = [...prev];
+      next[currentPIdx] = {
+        ...next[currentPIdx],
+        lives: Math.max(0, next[currentPIdx].lives - 1)
+      };
+      return next;
+    });
+
+    setTimeout(() => {
+      advanceNextTurn();
+    }, 2000);
+  };
+
+  const handleSubmitAnswer = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!answerInput.trim() || !isTimerRunning) return;
+
+    const query = answerInput.trim().toLowerCase();
+    const currentQ = QUESTIONS[roundIdx];
+
+    const isCorrect = currentQ.aliases.some(a => a.toLowerCase() === query) ||
+                      currentQ.teamAr.toLowerCase() === query ||
+                      currentQ.teamEn.toLowerCase() === query;
+
+    setIsTimerRunning(false);
+
+    if (isCorrect) {
+      soundFx.playCorrect();
+      const points = 10 + timeLeft;
+      setPlayers(prev => {
+        const next = [...prev];
+        next[currentPIdx] = {
+          ...next[currentPIdx],
+          score: next[currentPIdx].score + points
+        };
+        return next;
+      });
+
+      setFeedbackMsg({
+        text: `إجابة صحيحة ممتازة! 🎉 +${points} نقطة`,
+        type: 'correct'
+      });
+
+      setTimeout(() => {
+        advanceNextTurn();
+      }, 1500);
+    } else {
+      soundFx.playWrong();
+      setFeedbackMsg({
+        text: `إجابة خاطئة! ❌ الإجابة الصحيحة هي: ${currentQ.teamAr} (${currentQ.teamEn})`,
+        type: 'wrong'
+      });
+
+      deductLifeAndAdvance();
+    }
+  };
+
+  const advanceNextTurn = () => {
+    setFeedbackMsg(null);
+    setAnswerInput('');
+    setSuggestions([]);
+
+    const nextRound = roundIdx + 1;
+    const nextPIdx = currentPIdx === 0 ? 1 : 0;
+
+    const updatedPlayers = players;
+    if (nextRound >= QUESTIONS.length || (updatedPlayers[0].lives <= 0 && updatedPlayers[1].lives <= 0)) {
+      soundFx.playFanfare();
+      setScreen('result');
+      setIsTimerRunning(false);
+      return;
+    }
+
+    if (updatedPlayers[nextPIdx].lives <= 0) {
+      if (updatedPlayers[currentPIdx].lives <= 0) {
+        soundFx.playFanfare();
+        setScreen('result');
+        setIsTimerRunning(false);
+        return;
+      } else {
+        setRoundIdx(nextRound);
+        setTimeLeft(30);
+        setIsTimerRunning(true);
+      }
+    } else {
+      setRoundIdx(nextRound);
+      setCurrentPIdx(nextPIdx);
+      setTimeLeft(30);
+      setIsTimerRunning(true);
+    }
+  };
+
+  const handleSelectSuggestion = (sug: string) => {
+    setAnswerInput(sug);
+    setSuggestions([]);
+  };
+
+  const currentQuestion = QUESTIONS[roundIdx] || QUESTIONS[0];
+
+  return (
+    <div className="max-w-2xl mx-auto space-y-4 text-center select-none">
+      {screen === 'credits' && (
+        <div className="bg-slate-900 border-2 border-emerald-400 p-8 sm:p-12 rounded-3xl space-y-6 shadow-2xl my-8">
+          <div className="inline-block px-4 py-1.5 rounded-full bg-emerald-500/20 text-emerald-300 font-extrabold text-xs">
+            🏆 مسابقة المنتخبات الوطنية
+          </div>
+          <h1 className="text-4xl sm:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-amber-300 to-teal-300">
+            WELCOME!
+          </h1>
+          <p className="text-slate-300 text-sm font-bold">هذه اللعبة من تصميم وتطوير</p>
+          <h2 className="text-3xl font-black text-amber-400 tracking-wider">Karam Rami</h2>
+          <p className="text-xs text-slate-400 max-w-md mx-auto leading-relaxed">
+            خمن المنتخب الوطني عبر أندية الـ 11 لاعباً الأساسيين في الملعب ثلاثي الأبعاد خلال 30 ثانية!
+          </p>
+          <button
+            onClick={() => { soundFx.playClick(); setScreen('names'); }}
+            className="px-10 py-4 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black text-base rounded-2xl shadow-xl hover:scale-105 transition-all cursor-pointer"
+          >
+            الانتقال لأسماء المتنافسين 🚀
+          </button>
+        </div>
+      )}
+
+      {screen === 'names' && (
+        <div className="bg-slate-900 border border-slate-800 p-6 sm:p-8 rounded-3xl space-y-6 shadow-2xl max-w-lg mx-auto my-8">
+          <h2 className="text-2xl font-black text-amber-400">أدخل أسماء المتنافسين 👥</h2>
+
+          <div className="space-y-4 text-right">
+            <div>
+              <label className="text-xs font-bold text-emerald-400 block mb-1">اسم اللاعب الأول:</label>
+              <input
+                type="text"
+                value={p1Input}
+                onChange={(e) => setP1Input(e.target.value)}
+                placeholder="اللاعب 1"
+                className="w-full bg-slate-950 border border-slate-700 px-4 py-3 rounded-xl text-sm font-bold text-white outline-none focus:border-emerald-400"
+              />
+            </div>
+
+            <div>
+              <label className="text-xs font-bold text-rose-400 block mb-1">اسم اللاعب الثاني:</label>
+              <input
+                type="text"
+                value={p2Input}
+                onChange={(e) => setP2Input(e.target.value)}
+                placeholder="اللاعب 2"
+                className="w-full bg-slate-950 border border-slate-700 px-4 py-3 rounded-xl text-sm font-bold text-white outline-none focus:border-rose-400"
+              />
+            </div>
+          </div>
+
+          <button
+            onClick={handleStartGame}
+            className="w-full py-4 bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 font-black text-base rounded-2xl shadow-xl hover:scale-105 transition-all cursor-pointer"
+          >
+            بدء التحدي الآن ⚽
+          </button>
+        </div>
+      )}
+
+      {screen === 'playing' && (
+        <div className="space-y-4">
+          <div className="bg-slate-900/90 border border-slate-800 p-3 rounded-2xl flex items-center justify-between gap-2 shadow-xl">
+            <div className={`flex-1 p-2 rounded-xl text-center transition-all ${
+              currentPIdx === 0 ? 'bg-emerald-500/20 border border-emerald-400/50 shadow-lg' : 'bg-slate-950/50 opacity-60'
+            }`}>
+              <div className="text-xs font-black text-emerald-400">{players[0].name}</div>
+              <div className="text-base font-black text-white">{players[0].score} نقطة</div>
+              <div className="text-xs">
+                {"❤️".repeat(players[0].lives)}{"🖤".repeat(3 - players[0].lives)}
+              </div>
+            </div>
+
+            <div className={`w-14 h-14 rounded-full border-4 flex items-center justify-center font-black text-xl shadow-lg transition-colors ${
+              timeLeft <= 10 ? 'border-rose-500 text-rose-400 animate-pulse' : 'border-amber-400 text-amber-300'
+            }`}>
+              {timeLeft}
+            </div>
+
+            <div className={`flex-1 p-2 rounded-xl text-center transition-all ${
+              currentPIdx === 1 ? 'bg-rose-500/20 border border-rose-400/50 shadow-lg' : 'bg-slate-950/50 opacity-60'
+            }`}>
+              <div className="text-xs font-black text-rose-400">{players[1].name}</div>
+              <div className="text-base font-black text-white">{players[1].score} نقطة</div>
+              <div className="text-xs">
+                {"❤️".repeat(players[1].lives)}{"🖤".repeat(3 - players[1].lives)}
+              </div>
+            </div>
+          </div>
+
+          <div className="text-xs font-black text-amber-300 bg-slate-900/80 border border-amber-500/30 py-1.5 px-4 rounded-full inline-block">
+            الدور الحالي: {players[currentPIdx].name} • (الجولة {roundIdx + 1} من {QUESTIONS.length})
+          </div>
+
+          <div className="relative w-full h-[360px] sm:h-[420px] bg-emerald-950 rounded-3xl border-4 border-emerald-500/40 shadow-2xl overflow-hidden flex items-center justify-center p-2">
+            <div
+              className="absolute inset-0 bg-emerald-900 border-2 border-white/40 rounded-2xl overflow-hidden shadow-inner transform rotate-x-12 scale-95"
+              style={{
+                backgroundImage: `radial-gradient(circle at center, transparent 0%, rgba(0,0,0,0.4) 100%), linear-gradient(0deg, rgba(255,255,255,0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.08) 1px, transparent 1px)`,
+                backgroundSize: '100% 100%, 30px 30px, 30px 30px'
+              }}
+            >
+              <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-white/40 transform -translate-y-1/2"></div>
+              <div className="absolute top-1/2 left-1/2 w-28 h-28 border-2 border-white/40 rounded-full transform -translate-x-1/2 -translate-y-1/2"></div>
+
+              {currentQuestion.clubs.map((club, idx) => {
+                const pos = POSITIONS[idx] || { t: 50, l: 50 };
+                const logoUrl = LOGOS[club];
+                return (
+                  <div
+                    key={idx}
+                    style={{ top: `${pos.t}%`, left: `${pos.l}%` }}
+                    className="absolute w-10 h-10 sm:w-12 sm:h-12 bg-white rounded-full border-2 border-amber-400 shadow-xl flex items-center justify-center p-1 transform -translate-x-1/2 -translate-y-1/2 hover:scale-110 transition-transform z-10"
+                    title={club}
+                  >
+                    {logoUrl ? (
+                      <img
+                        src={logoUrl}
+                        alt={club}
+                        className="w-full h-full object-contain"
+                        onError={(e) => {
+                          (e.target as HTMLElement).style.display = 'none';
+                        }}
+                      />
+                    ) : null}
+                    <span className="text-[8px] sm:text-[9px] font-black text-slate-900 text-center leading-tight truncate px-0.5">
+                      {club}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+
+            {feedbackMsg && (
+              <div className={`absolute inset-x-4 top-4 z-30 p-4 rounded-2xl border-2 font-black text-sm shadow-2xl animate-bounce ${
+                feedbackMsg.type === 'correct'
+                  ? 'bg-emerald-950/90 border-emerald-400 text-emerald-300'
+                  : 'bg-rose-950/90 border-rose-500 text-rose-300'
+              }`}>
+                {feedbackMsg.text}
+              </div>
+            )}
+          </div>
+
+          <div className="relative space-y-2">
+            {suggestions.length > 0 && (
+              <div className="absolute bottom-full mb-2 left-0 right-0 bg-slate-900 border-2 border-amber-400 rounded-2xl max-h-40 overflow-y-auto shadow-2xl z-40 p-1 divide-y divide-slate-800">
+                {suggestions.map((sug, i) => (
+                  <div
+                    key={i}
+                    onClick={() => handleSelectSuggestion(sug)}
+                    className="p-2.5 text-right text-xs font-bold text-white hover:bg-amber-400 hover:text-slate-950 rounded-xl cursor-pointer transition-colors"
+                  >
+                    ⚽ {sug}
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <form onSubmit={handleSubmitAnswer} className="flex gap-2">
+              <input
+                type="text"
+                value={answerInput}
+                onChange={(e) => setAnswerInput(e.target.value)}
+                placeholder="اكتب اسم المنتخب الوطني هنا..."
+                className="grow bg-slate-900 border border-slate-700 px-4 py-3.5 rounded-2xl text-xs sm:text-sm text-white font-bold outline-none focus:border-amber-400 shadow-inner"
+              />
+              <button
+                type="submit"
+                disabled={!answerInput.trim() || !isTimerRunning}
+                className="px-6 py-3.5 bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 font-black text-xs sm:text-sm rounded-2xl shadow-xl disabled:opacity-40 cursor-pointer hover:scale-105 transition-all"
+              >
+                تأكيد الإجابة 🚀
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {screen === 'result' && (
+        <div className="bg-slate-900 border-2 border-amber-400 p-8 rounded-3xl space-y-6 shadow-2xl max-w-lg mx-auto my-8 text-center">
+          <h2 className="text-3xl font-black text-amber-400">🏆 نهاية المباراة! 🏆</h2>
+
+          <div className="bg-slate-950 p-6 rounded-2xl border border-slate-800 space-y-3">
+            <div className="text-2xl font-black text-emerald-400">
+              {players[0].score > players[1].score
+                ? `الفائز هو: ${players[0].name} 🎉`
+                : players[1].score > players[0].score
+                ? `الفائز هو: ${players[1].name} 🎉`
+                : "تعادل حماسي رائع بين المتنافسين! 🤝"}
+            </div>
+
+            <div className="text-sm font-extrabold text-slate-300 pt-2 border-t border-slate-800 space-y-1">
+              <div>{players[0].name}: <span className="text-amber-300">{players[0].score}</span> نقطة</div>
+              <div>{players[1].name}: <span className="text-amber-300">{players[1].score}</span> نقطة</div>
+            </div>
+          </div>
+
+          <button
+            onClick={handleStartGame}
+            className="w-full py-4 bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 font-black text-base rounded-2xl shadow-xl hover:scale-105 transition-all cursor-pointer"
+          >
+            إعادة التحدي (REMATCH) 🔄
+          </button>
+        </div>
+      )}
+    </div>
+  );
+};

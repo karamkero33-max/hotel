@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>خمن اللاعب من انتقالاته | Guess The Player</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    body {
+      font-family: 'Cairo', sans-serif;
+      background-color: #020617;
+      color: #f8fafc;
+      min-height: 100vh;
+      margin: 0;
+    }
+    @keyframes float {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-6px); }
+    }
+    .animate-float {
+      animation: float 3s ease-in-out infinite;
+    }
+    .glow-green {
+      box-shadow: 0 0 25px rgba(34, 197, 94, 0.4);
+    }
+    .glow-red {
+      box-shadow: 0 0 25px rgba(239, 68, 68, 0.4);
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 flex flex-col justify-between min-h-screen">
+
+  <!-- Header -->
+  <header class="w-full bg-slate-900/90 backdrop-blur-md border-b border-purple-500/20 sticky top-0 z-40 shadow-xl">
+    <div class="max-w-6xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-purple-600 to-indigo-500 flex items-center justify-center shadow-lg shadow-purple-500/30 text-white font-black text-xl border border-purple-400/30">
+          ⚽
+        </div>
+        <div>
+          <h1 id="app-title" class="font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-purple-300 via-pink-300 to-amber-200 text-base sm:text-lg uppercase">
+            خمن اللاعب من انتقالاته
+          </h1>
+          <p class="text-xs text-purple-300/70 font-medium">تحدي معرفة مسيرة نجوم كرة القدم</p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2 sm:gap-4 flex-wrap">
+        <button onclick="openRoundSelector()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-purple-300 text-xs sm:text-sm font-semibold border border-purple-500/30 transition-all cursor-pointer">
+          <i data-lucide="layers" class="w-4 h-4 text-purple-400"></i>
+          <span id="current-round-btn-text">المرحلة 1</span>
+        </button>
+
+        <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs sm:text-sm font-bold">
+          <i data-lucide="trophy" class="w-4 h-4 text-amber-400"></i>
+          <span id="score-val">0</span>
+          <span class="text-[10px] text-amber-400/70">نقاط</span>
+        </div>
+
+        <div class="flex items-center gap-1 bg-slate-800/90 p-1 rounded-lg border border-slate-700">
+          <button onclick="toggleSound()" class="p-1.5 rounded-md hover:bg-slate-700 text-slate-300 hover:text-white transition-colors cursor-pointer" title="الصوت">
+            <i id="sound-icon" data-lucide="volume-2" class="w-4 h-4 text-green-400"></i>
+          </button>
+          <button onclick="resetGame()" class="p-1.5 rounded-md hover:bg-slate-700 text-slate-400 hover:text-rose-400 transition-colors cursor-pointer" title="إعادة">
+            <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Game Container -->
+  <main class="grow flex items-center justify-center p-2 sm:p-4 my-2">
+    <div class="w-full max-w-4xl mx-auto px-2 sm:px-4 py-4">
+      
+      <!-- Top Badges -->
+      <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
+        <div class="inline-flex items-center gap-2 bg-gradient-to-r from-purple-600 to-indigo-600 px-4 py-1.5 rounded-full border border-purple-400/30 text-white font-black text-xs sm:text-sm shadow-lg tracking-wide">
+          <i data-lucide="trophy" class="w-4 h-4 text-amber-300"></i>
+          <span id="question-num-tag">السؤال 1 / 4</span>
+        </div>
+        <div id="round-title-tag" class="text-xs font-bold text-purple-300 bg-slate-900/90 border border-purple-500/20 px-3 py-1 rounded-full">
+          المرحلة 1: أساطير العالم
+        </div>
+      </div>
+
+      <!-- Question Card -->
+      <div class="bg-slate-900/95 border-2 border-purple-500/30 rounded-3xl p-4 sm:p-8 shadow-2xl relative backdrop-blur-xl">
+        <div class="text-center mb-2">
+          <h2 class="text-xl sm:text-3xl font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-white to-purple-200 uppercase">
+            من هو هذا اللاعب؟
+          </h2>
+          <p class="text-xs sm:text-sm text-slate-400 mt-1">تتبع الانتقالات والمحطات بالترتيب الزمني</p>
+        </div>
+
+        <!-- Transfer Timeline -->
+        <div class="w-full my-6 bg-slate-900/60 p-4 sm:p-6 rounded-2xl border border-purple-500/20 shadow-2xl relative overflow-hidden backdrop-blur-md">
+          <div class="text-center mb-4">
+            <span class="inline-block px-3 py-1 bg-purple-950/80 text-purple-300 border border-purple-500/30 rounded-full text-xs font-bold uppercase tracking-wider">
+              مسيرة الانتقالات
+            </span>
+          </div>
+          <div id="timeline-container" class="flex flex-wrap items-center justify-center gap-3 sm:gap-4 max-w-full overflow-x-auto py-2">
+            <!-- Clubs inserted dynamically -->
+          </div>
+        </div>
+
+        <!-- Options -->
+        <div id="options-container" class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 my-6">
+          <!-- Options inserted dynamically -->
+        </div>
+
+        <!-- Hint Section -->
+        <div class="mt-4 text-center">
+          <button id="hint-btn" onclick="toggleHint()" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 text-xs font-bold transition-all cursor-pointer">
+            <i data-lucide="help-circle" class="w-4 h-4 text-amber-400"></i>
+            <span>هل تحتاج تلميح؟</span>
+          </button>
+          <div id="hint-box" class="hidden mt-3 bg-slate-950/80 border border-amber-500/30 rounded-xl p-4 text-xs sm:text-sm text-amber-200/90 text-right sm:text-center max-w-lg mx-auto shadow-inner">
+            <div class="font-extrabold text-amber-400 mb-1 flex items-center justify-center gap-1">
+              <i data-lucide="sparkles" class="w-4 h-4"></i>
+              <span>تلميح عن اللاعب</span>
+            </div>
+            <p id="hint-nationality"></p>
+            <p id="hint-position"></p>
+            <p id="hint-achievements"></p>
+          </div>
+        </div>
+
+        <!-- Explanation & Next Button Container -->
+        <div id="explanation-box" class="hidden mt-6 p-4 sm:p-5 rounded-2xl border-2 text-center">
+          <div id="explanation-header" class="flex items-center justify-center gap-2 font-black text-lg sm:text-xl mb-1"></div>
+          <p id="explanation-text" class="text-xs sm:text-sm opacity-90 max-w-2xl mx-auto my-3 leading-relaxed font-medium"></p>
+          <button onclick="nextQuestion()" class="mt-2 inline-flex items-center gap-2 px-8 py-3.5 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-slate-950 font-black text-base shadow-xl shadow-amber-500/20 transition-all hover:scale-105 cursor-pointer">
+            <span>السؤال التالي</span>
+            <i data-lucide="arrow-left" class="w-5 h-5"></i>
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </main>
+
+  <!-- Round Selector Modal -->
+  <div id="round-modal" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-slate-900 border border-purple-500/30 rounded-2xl max-w-2xl w-full p-6 shadow-2xl relative">
+      <button onclick="closeRoundSelector()" class="absolute top-4 left-4 text-slate-400 hover:text-white bg-slate-800 p-2 rounded-lg cursor-pointer">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+      <div class="text-center mb-6">
+        <h2 class="text-xl sm:text-2xl font-black text-white">اختر مرحلة التحدي</h2>
+        <p class="text-xs sm:text-sm text-slate-400 mt-1">40 سؤالاً مقسمة على 4 مستويات متدرجة الصعوبة</p>
+      </div>
+      <div id="rounds-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <!-- Rounds inserted dynamically -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Score Modal -->
+  <div id="score-modal" class="hidden fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-slate-900 border-2 border-purple-500/40 rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl text-center relative overflow-hidden">
+      <div class="w-20 h-20 mx-auto rounded-full bg-gradient-to-tr from-amber-400 to-amber-600 flex items-center justify-center shadow-2xl border-4 border-slate-900 mb-4 animate-bounce">
+        <i data-lucide="trophy" class="w-10 h-10 text-slate-950"></i>
+      </div>
+      <h2 id="modal-round-title" class="text-2xl sm:text-3xl font-black text-white">اكتملت المرحلة!</h2>
+      <div id="modal-rank-badge" class="inline-flex items-center gap-2 my-3 px-4 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-300 text-sm font-extrabold"></div>
+      
+      <div class="grid grid-cols-2 gap-3 my-5">
+        <div class="bg-slate-800/80 p-3.5 rounded-2xl border border-slate-700">
+          <span class="block text-xs text-slate-400 font-bold mb-1">الإجابات الصحيحة</span>
+          <span id="modal-correct-count" class="text-2xl font-black text-emerald-400">0 / 4</span>
+        </div>
+        <div class="bg-slate-800/80 p-3.5 rounded-2xl border border-slate-700">
+          <span class="block text-xs text-slate-400 font-bold mb-1">نسبة الدقة</span>
+          <span id="modal-accuracy" class="text-2xl font-black text-amber-300">0%</span>
+        </div>
+      </div>
+
+      <div class="flex flex-col sm:flex-row items-center gap-3 mt-6">
+        <button onclick="replayCurrentRound()" class="w-full py-3.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-extrabold text-sm border border-slate-700 cursor-pointer">
+          إعادة المرحلة
+        </button>
+        <button onclick="openRoundSelector(); closeScoreModal();" class="w-full py-3.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-extrabold text-sm shadow-lg shadow-purple-600/30 cursor-pointer">
+          اختر مرحلة أخرى
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="w-full bg-slate-900/80 border-t border-purple-500/20 py-3 px-4">
+    <div class="max-w-4xl mx-auto flex items-center justify-between text-xs text-slate-400">
+      <div class="flex items-center gap-2">
+        <span id="footer-round-text" class="font-bold text-amber-300">المرحلة 1 من 4</span>
+      </div>
+      <button onclick="openRoundSelector()" class="flex items-center gap-1 px-3 py-1 rounded bg-purple-950/80 text-purple-300 hover:bg-purple-900 border border-purple-500/30 font-bold cursor-pointer">
+        <i data-lucide="layers" class="w-3.5 h-3.5"></i>
+        <span>المراحل</span>
+      </button>
+    </div>
+  </footer>
+
+  <!-- Audio & Script Logic -->
+  <script>
+    // Audio Synth
+    let audioCtx = null;
+    let soundEnabled = true;
+
+    function getAudioContext() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      return audioCtx;
+    }
+
+    function playSound(type) {
+      if (!soundEnabled) return;
+      try {
+        const ctx = getAudioContext();
+        const now = ctx.currentTime;
+        if (type === 'correct') {
+          [523.25, 659.25, 783.99].forEach((f, i) => {
+            const osc = ctx.createOscillator(), gain = ctx.createGain();
+            osc.type = 'triangle'; osc.frequency.value = f;
+            gain.gain.setValueAtTime(0.2, now + i*0.08);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + i*0.08 + 0.3);
+            osc.connect(gain); gain.connect(ctx.destination);
+            osc.start(now + i*0.08); osc.stop(now + i*0.08 + 0.35);
+          });
+        } else if (type === 'wrong') {
+          const osc = ctx.createOscillator(), gain = ctx.createGain();
+          osc.type = 'sawtooth'; osc.frequency.setValueAtTime(150, now);
+          gain.gain.setValueAtTime(0.2, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+          osc.connect(gain); gain.connect(ctx.destination);
+          osc.start(now); osc.stop(now + 0.3);
+        }
+      } catch (e) {}
+    }
+
+    function toggleSound() {
+      soundEnabled = !soundEnabled;
+      document.getElementById('sound-icon').className = soundEnabled ? 'w-4 h-4 text-green-400' : 'w-4 h-4 text-slate-500';
+    }
+
+    // Questions Data
+    const QUESTIONS = [
+      {
+        id: 1, round: 1, roundTitleAr: 'المرحلة 1: أساطير العالم',
+        transfers: [
+          { club: 'Sporting CP', year: '2002', color: 'from-green-600 to-emerald-800', badgeText: 'SCP' },
+          { club: 'Man United', year: '2003', color: 'from-red-600 to-red-800', badgeText: 'MUFC' },
+          { club: 'Real Madrid', year: '2009', color: 'from-purple-600 to-indigo-800', badgeText: 'RMA' },
+          { club: 'Juventus', year: '2018', color: 'from-slate-800 to-zinc-950', badgeText: 'JUV' },
+          { club: 'Man United', year: '2021', color: 'from-red-600 to-red-800', badgeText: 'MUFC' },
+          { club: 'Al Nassr', year: '2023', color: 'from-yellow-500 to-amber-600', badgeText: 'NAS' }
+        ],
+        options: ['Lionel Messi', 'Cristiano Ronaldo', 'Karim Benzema', 'Neymar Jr.'],
+        correctAnswer: 'Cristiano Ronaldo',
+        hint: { nationality: '🇵🇹 البرتغال', position: 'مهاجم', achievements: '5 كرة ذهبية & 5 دوري أبطال أوروبا' },
+        descriptionAr: 'بدأ الدون في سبورتينغ لشبونة، وتوهج مع مانشستر يونايتد، وصنع التاريخ مع ريال مدريد، يوفنتوس والنصر.'
+      },
+      {
+        id: 2, round: 1, roundTitleAr: 'المرحلة 1: أساطير العالم',
+        transfers: [
+          { club: 'Newell\'s Old Boys', year: '1995', color: 'from-red-700 to-black', badgeText: 'NOB' },
+          { club: 'FC Barcelona', year: '2004', color: 'from-blue-700 to-red-700', badgeText: 'BAR' },
+          { club: 'PSG', year: '2021', color: 'from-blue-900 to-red-800', badgeText: 'PSG' },
+          { club: 'Inter Miami', year: '2023', color: 'from-pink-500 to-rose-600', badgeText: 'MIA' }
+        ],
+        options: ['Sergio Agüero', 'Ronaldinho', 'Lionel Messi', 'Angel Di María'],
+        correctAnswer: 'Lionel Messi',
+        hint: { nationality: '🇦🇷 الأرجنتين', position: 'جناح / صانع ألعاب', achievements: '8 كرة ذهبية & بطل كأس العالم 2022' },
+        descriptionAr: 'نشأ في نيويلز أولد بويز، كتب التاريخ بـ 672 هدفاً مع برشلونة، لعب لباريس سان جيرمان وإنتر ميامي.'
+      },
+      {
+        id: 3, round: 1, roundTitleAr: 'المرحلة 1: أساطير العالم',
+        transfers: [
+          { club: 'Santos', year: '2009', color: 'from-slate-100 to-slate-300', badgeText: 'SAN' },
+          { club: 'FC Barcelona', year: '2013', color: 'from-blue-700 to-red-700', badgeText: 'BAR' },
+          { club: 'PSG', year: '2017', color: 'from-blue-900 to-red-800', badgeText: 'PSG' },
+          { club: 'Al Hilal', year: '2023', color: 'from-blue-600 to-indigo-800', badgeText: 'HIL' }
+        ],
+        options: ['Neymar Jr.', 'Philippe Coutinho', 'Robinho', 'Vinícius Júnior'],
+        correctAnswer: 'Neymar Jr.',
+        hint: { nationality: '🇧🇷 البرازيل', position: 'جناح أيسر', achievements: 'أغلى صفقة في تاريخ كرة القدم (222M€)' },
+        descriptionAr: 'انطلق من سانتوس، شكل ثلاثي MSN مع برشلونة، انتقل لباريس سان جيرمان وانضم للهلال السعودي.'
+      },
+      {
+        id: 4, round: 1, roundTitleAr: 'المرحلة 1: أساطير العالم',
+        transfers: [
+          { club: 'AS Monaco', year: '2015', color: 'from-red-600 to-red-800', badgeText: 'ASM' },
+          { club: 'PSG', year: '2017', color: 'from-blue-900 to-red-800', badgeText: 'PSG' },
+          { club: 'Real Madrid', year: '2024', color: 'from-purple-600 to-indigo-800', badgeText: 'RMA' }
+        ],
+        options: ['Erling Haaland', 'Marcus Rashford', 'Ousmane Dembélé', 'Kylian Mbappé'],
+        correctAnswer: 'Kylian Mbappé',
+        hint: { nationality: '🇫🇷 فرنسا', position: 'مهاجم / جناح', achievements: 'بطل كأس العالم 2018 وهداف مونديال 2022' },
+        descriptionAr: 'انطلق مع موناكو، أصبح الهداف التاريخي لباريس سان جيرمان، وانتقل إلى ريال مدريد سنة 2024.'
+      }
+    ];
+
+    let currentRound = 1;
+    let currentQuestionIdx = 0;
+    let score = 0;
+    let answers = {};
+    let isAnswered = false;
+
+    function init() {
+      renderQuestion();
+      lucide.createIcons();
+    }
+
+    function renderQuestion() {
+      const q = QUESTIONS[currentQuestionIdx];
+      isAnswered = !!answers[q.id];
+
+      document.getElementById('question-num-tag').innerText = `السؤال ${currentQuestionIdx + 1} / ${QUESTIONS.length}`;
+      document.getElementById('round-title-tag').innerText = q.roundTitleAr;
+      document.getElementById('score-val').innerText = score;
+      document.getElementById('current-round-btn-text').innerText = `المرحلة ${currentRound}`;
+
+      // Timeline
+      const timeline = document.getElementById('timeline-container');
+      timeline.innerHTML = q.transfers.map((item, idx) => `
+        <div class="flex flex-col items-center bg-white rounded-xl px-3.5 py-3 border-2 border-slate-900 shadow-[0_6px_0_0_rgba(15,23,42,1)] min-w-[110px] text-center">
+          <div class="w-10 h-10 rounded-lg bg-gradient-to-tr ${item.color} flex items-center justify-center font-black text-white text-xs mb-2">
+            ${item.badgeText}
+          </div>
+          <span class="font-extrabold text-xs text-slate-900">${item.club}</span>
+          <span class="mt-2 px-2 py-0.5 rounded-full bg-slate-900 text-amber-300 font-extrabold text-[11px]">${item.year}</span>
+        </div>
+        ${idx < q.transfers.length - 1 ? '<div class="text-amber-400 font-bold">←</div>' : ''}
+      `).join('');
+
+      // Options
+      const optionsContainer = document.getElementById('options-container');
+      optionsContainer.innerHTML = q.options.map((opt, idx) => {
+        let style = "bg-slate-800 hover:bg-slate-700 text-white border-slate-700 cursor-pointer";
+        if (isAnswered) {
+          if (opt === q.correctAnswer) style = "bg-emerald-600 text-white border-emerald-400 font-bold glow-green";
+          else if (opt === answers[q.id]?.selected) style = "bg-rose-600 text-white border-rose-400 glow-red";
+          else style = "bg-slate-800/40 text-slate-500 border-slate-800 cursor-not-allowed";
+        }
+        return `
+          <button onclick="selectOption('${opt}')" ${isAnswered ? 'disabled' : ''} class="w-full p-4 rounded-2xl border-2 font-bold text-sm flex items-center justify-between ${style}">
+            <span>${['A', 'B', 'C', 'D'][idx]}</span>
+            <span class="grow text-center">${opt}</span>
+          </button>
+        `;
+      }).join('');
+
+      // Hint box
+      document.getElementById('hint-box').classList.add('hidden');
+      document.getElementById('hint-nationality').innerText = `الجنسية: ${q.hint.nationality}`;
+      document.getElementById('hint-position').innerText = `المركز: ${q.hint.position}`;
+      document.getElementById('hint-achievements').innerText = `الإنجازات: ${q.hint.achievements}`;
+
+      // Explanation
+      const expBox = document.getElementById('explanation-box');
+      if (isAnswered) {
+        expBox.classList.remove('hidden');
+        const isCorrect = answers[q.id].isCorrect;
+        expBox.className = `mt-6 p-4 rounded-2xl border-2 text-center ${isCorrect ? 'bg-emerald-950/60 border-emerald-500/50 text-emerald-200' : 'bg-rose-950/60 border-rose-500/50 text-rose-200'}`;
+        document.getElementById('explanation-header').innerText = isCorrect ? 'إجابة صحيحة! أحسنت 👏' : `إجابة خاطئة! الصحيح: ${q.correctAnswer}`;
+        document.getElementById('explanation-text').innerText = q.descriptionAr;
+      } else {
+        expBox.classList.add('hidden');
+      }
+
+      lucide.createIcons();
+    }
+
+    function selectOption(opt) {
+      if (isAnswered) return;
+      const q = QUESTIONS[currentQuestionIdx];
+      const isCorrect = opt === q.correctAnswer;
+      playSound(isCorrect ? 'correct' : 'wrong');
+      if (isCorrect) score += 10;
+
+      answers[q.id] = { selected: opt, isCorrect };
+      renderQuestion();
+    }
+
+    function nextQuestion() {
+      if (currentQuestionIdx < QUESTIONS.length - 1) {
+        currentQuestionIdx++;
+        renderQuestion();
+      } else {
+        openScoreModal();
+      }
+    }
+
+    function toggleHint() {
+      document.getElementById('hint-box').classList.toggle('hidden');
+    }
+
+    function openRoundSelector() {
+      document.getElementById('round-modal').classList.remove('hidden');
+    }
+
+    function closeRoundSelector() {
+      document.getElementById('round-modal').classList.add('hidden');
+    }
+
+    function openScoreModal() {
+      document.getElementById('score-modal').classList.remove('hidden');
+      document.getElementById('modal-correct-count').innerText = `${score / 10} / ${QUESTIONS.length}`;
+      document.getElementById('modal-accuracy').innerText = `${Math.round((score / (QUESTIONS.length * 10)) * 100)}%`;
+    }
+
+    function closeScoreModal() {
+      document.getElementById('score-modal').classList.add('hidden');
+    }
+
+    function replayCurrentRound() {
+      score = 0;
+      answers = {};
+      currentQuestionIdx = 0;
+      closeScoreModal();
+      renderQuestion();
+    }
+
+    function resetGame() {
+      if (confirm('هل تريد إعادة اللعبة بالكامل؟')) {
+        score = 0;
+        answers = {};
+        currentQuestionIdx = 0;
+        renderQuestion();
+      }
+    }
+
+    window.onload = init;
+  </script>
+</body>
+</html>

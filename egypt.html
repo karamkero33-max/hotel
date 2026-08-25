@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تشكيلة الدوري المصري</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <h1>اصنع تشكيلة الدوري المصري 🇪🇬</h1>
+    <p style="color: #aaa; margin-top: 0;">اضغط على أي مركز لاختيار اللاعب</p>
+
+    <!-- الملعب -->
+    <div class="pitch">
+        <div class="center-circle"></div>
+
+        <!-- الهجوم (3 لاعبين) -->
+        <div class="line">
+            <div class="player-slot" onclick="openSelector('FW', 'مهاجم جناح أيمن')">
+                <div class="player-icon" id="FW1-icon">🏃‍♂️</div>
+                <div class="player-name" id="FW1-name">جناح أيمن</div>
+            </div>
+            <div class="player-slot" onclick="openSelector('ST', 'مهاجم صريح')">
+                <div class="player-icon" id="ST-icon">⚽</div>
+                <div class="player-name" id="ST-name">مهاجم</div>
+            </div>
+            <div class="player-slot" onclick="openSelector('FW', 'مهاجم جناح أيسر')">
+                <div class="player-icon" id="FW2-icon">🏃‍♂️</div>
+                <div class="player-name" id="FW2-name">جناح أيسر</div>
+            </div>
+        </div>
+
+        <!-- الوسط (3 لاعبين) -->
+        <div class="line">
+            <div class="player-slot" onclick="openSelector('MID', 'لاعب وسط')">
+                <div class="player-icon" id="MID1-icon">👟</div>
+                <div class="player-name" id="MID1-name">وسط</div>
+            </div>
+            <div class="player-slot" onclick="openSelector('MID', 'لاعب وسط')">
+                <div class="player-icon" id="MID2-icon">👟</div>
+                <div class="player-name" id="MID2-name">وسط</div>
+            </div>
+            <div class="player-slot" onclick="openSelector('MID', 'لاعب وسط')">
+                <div class="player-icon" id="MID3-icon">👟</div>
+                <div class="player-name" id="MID3-name">وسط</div>
+            </div>
+        </div>
+
+        <!-- الدفاع (4 لاعبين) -->
+        <div class="line">
+            <div class="player-slot" onclick="openSelector('DF_R', 'ظهير أيمن')">
+                <div class="player-icon" id="DF_R-icon">🛡️</div>
+                <div class="player-name" id="DF_R-name">ظهير أيمن</div>
+            </div>
+            <div class="player-slot" onclick="openSelector('CB', 'قلب دفاع')">
+                <div class="player-icon" id="CB1-icon">🛡️</div>
+                <div class="player-name" id="CB1-name">مدافع</div>
+            </div>
+            <div class="player-slot" onclick="openSelector('CB', 'قلب دفاع')">
+                <div class="player-icon" id="CB2-icon">🛡️</div>
+                <div class="player-name" id="CB2-name">مدافع</div>
+            </div>
+            <div class="player-slot" onclick="openSelector('DF_L', 'ظهير أيسر')">
+                <div class="player-icon" id="DF_L-icon">🛡️</div>
+                <div class="player-name" id="DF_L-name">ظهير أيسر</div>
+            </div>
+        </div>
+
+        <!-- حارس المرمى -->
+        <div class="line">
+            <div class="player-slot" onclick="openSelector('GK', 'حارس مرمى')">
+                <div class="player-icon" id="GK-icon">🧤</div>
+                <div class="player-name" id="GK-name">حارس المرمى</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- قائمة اختيار اللاعبين (Popup) -->
+    <div class="modal" id="playerModal">
+        <div class="modal-content">
+            <h3 id="modalTitle">اختر اللاعب</h3>
+            <div class="players-list" id="playersList">
+                <!-- سيتم ملء اللاعبين هنا عبر الجافا سكريبت -->
+            </div>
+            <button class="close-btn" onclick="closeSelector()">إغلاق</button>
+        </div>
+    </div>
+
+    <script>
+        // داتا اللاعبين بالدوري المصري مصنفة حسب المراكز
+        const database = {
+            GK: ["محمد الشناوي", "مصطفى شوبير", "أحمد الشناوي", "محمد عواد", "المهدي سليمان", "محمود جاد"],
+            CB: ["علي جبر", "رامي ربيعة", "محمد اسماعيل", "حسام عبد المجيد", "أحمد رمضان بيكهام", "ياسر إبراهيم"],
+            DF_R: ["محمد هاني", "عمر كمال", "عمر جابر", "المثلوثي", "أكرم توفيق"],
+            DF_L: ["علي معلول", "أحمد فتوح", "كريم الدبيس", "محمد حمدي", "جوزيف نغويم"],
+            MID: ["إمام عاشور", "مروان عطية", "ناصر ماهر", "عبد الله السعيد", "أحمد نبيل كوكا", "مهند لاشين", "اليو ديانج"],
+            ST: ["عدي الدباغ", "مصطفى زيكو", "سيف الجزيري", "ناصر منسي", "اسامه فيصل", "محمد شريف"],
+            FW: ["أحمد سيد زيزو", "حسين الشحات", "شيكو بانزا", "مصطفى فتحي", "احمد شريف", "خوان بزيرا"]
+        };
+
+        let currentTargetIconId = '';
+        let currentTargetNameId = '';
+
+        // فتح القائمة واختيار اللاعبين بناء على المركز المختار
+        function openSelector(position, positionName) {
+            const modal = document.getElementById('playerModal');
+            const modalTitle = document.getElementById('modalTitle');
+            const playersList = document.getElementById('playersList');
+            
+            // تحديد الـ IDs الخاصة بالكرت الذي تم الضغط عليه لتحديثه لاحقاً
+            // التفريق بين المدافعين والوسط والأجنحة بنفس المركز
+            const event = window.event;
+            const clickedSlot = event.currentTarget;
+            currentTargetIconId = clickedSlot.querySelector('.player-icon').id;
+            currentTargetNameId = clickedSlot.querySelector('.player-name').id;
+
+            modalTitle.innerText = `اختر ${positionName}`;
+            playersList.innerHTML = ''; // تنظيف القائمة القديمة
+
+            // جلب اللاعبين المناسبين من الداتا
+            const players = database[position];
+            
+            players.forEach(player => {
+                const div = document.createElement('div');
+                div.className = 'player-option';
+                div.innerText = player;
+                div.onclick = function() {
+                    selectPlayer(player);
+                };
+                playersList.appendChild(div);
+            });
+
+            modal.style.display = 'flex';
+        }
+
+        // عند اختيار لاعب من القائمة
+        function selectPlayer(playerName) {
+            document.getElementById(currentTargetNameId).innerText = playerName;
+            // تغيير الإيموجي أو الشكل ليوحي بوجود لاعب
+            document.getElementById(currentTargetIconId).innerText = "🏃";
+            document.getElementById(currentTargetIconId).style.borderColor = "#4caf50";
+            closeSelector();
+        }
+
+        // إغلاق النافذة
+        function closeSelector() {
+            document.getElementById('playerModal').style.display = 'none';
+        }
+
+        // إغلاق النافذة عند الضغط خارجها
+        window.onclick = function(event) {
+            const modal = document.getElementById('playerModal');
+            if (event.target == modal) {
+                modal.style.display = "none";
+            }
+        }
+    </script>
+</body>
+</html>

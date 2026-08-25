@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تحدي تشكيلات كرة القدم</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #1a1a2e;
+            color: #fff;
+            margin: 0;
+            padding: 20px;
+            text-align: center;
+        }
+        h1 { color: #00e676; margin-bottom: 5px; }
+        .sub-title { color: #ccc; margin-bottom: 25px; }
+        .container {
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+        .team-column {
+            background-color: #162447;
+            padding: 20px;
+            border-radius: 10px;
+            width: 45%;
+            min-width: 320px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            margin-bottom: 20px;
+        }
+        .position-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 18px;
+            position: relative; /* مهم جداً لضبط مكان القائمة */
+        }
+        .position-label {
+            font-weight: bold;
+            width: 35%;
+            text-align: right;
+            font-size: 14px;
+            color: #00e676;
+        }
+        .search-box {
+            position: relative;
+            width: 60%;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            border-radius: 5px;
+            border: 2px solid #1f4068;
+            background-color: #1f4068;
+            color: #fff;
+            box-sizing: border-box;
+            font-size: 14px;
+            outline: none;
+        }
+        input:focus {
+            border-color: #00e676;
+        }
+        /* تعديل التصميم لضمان ظهور القائمة فوق كل شيء */
+        .autocomplete-items {
+            position: absolute;
+            border: 2px solid #00e676;
+            border-top: none;
+            z-index: 9999;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background-color: #1f4068;
+            max-height: 180px;
+            overflow-y: auto;
+            border-radius: 0 0 5px 5px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.6);
+        }
+        .autocomplete-items div {
+            padding: 12px;
+            cursor: pointer;
+            text-align: right;
+            border-bottom: 1px solid #162447;
+            font-size: 14px;
+        }
+        .autocomplete-items div:hover {
+            background-color: #00e676;
+            color: #1a1a2e;
+            font-weight: bold;
+        }
+        button {
+            background-color: #00e676;
+            color: #1a1a2e;
+            border: none;
+            padding: 15px 40px;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 25px;
+            transition: 0.3s;
+            box-shadow: 0 4px 10px rgba(0,230,118,0.3);
+        }
+        button:hover { 
+            background-color: #00b359; 
+            transform: scale(1.02);
+        }
+        #result-box {
+            margin-top: 30px;
+            padding: 25px;
+            border-radius: 10px;
+            display: none;
+            font-size: 22px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+        }
+    </style>
+</head>
+<body>
+
+    <h1>⚽ لعبة تحدي التشكيلات وتوقع الـ AI</h1>
+    <p class="sub-title">اكتب حرفين على الأقل في أي مركز لتظهر لك قائمة اللاعبين فوراً</p>
+
+    <div class="container">
+        <!-- اللاعب الأول -->
+        <div class="team-column" id="team1">
+            <h2>👤 تشكيلة اللاعب الأول</h2>
+            <div id="inputs-team1"></div>
+        </div>
+
+        <!-- اللاعب الثاني -->
+        <div class="team-column" id="team2">
+            <h2>👤 تشكيلة اللاعب الثاني</h2>
+            <div id="inputs-team2"></div>
+        </div>
+    </div>
+
+    <button onclick="predictMatch()">🧠 دع الذكاء الاصطناعي يتوقع النتيجة</button>
+
+    <div id="result-box"></div>
+
+<script>
+// قائمة اللاعبين للبحث (اكتب أول حرفين من أي اسم مثل Mo أو Li)
+const PLAYERS = [
+    "Lionel Messi", "Cristiano Ronaldo", "Kylian Mbappé", "Erling Haaland", 
+    "Kevin De Bruyne", "Mohamed Salah", "Vinícius Júnior", "Jude Bellingham", 
+    "Harry Kane", "Robert Lewandowski", "Luka Modrić", "Virgil van Dijk", 
+    "Rúben Dias", "Achraf Hakimi", "Alphonso Davies", "Thibaut Courtois", 
+    "Alisson Becker", "Ederson", "Bernardo Silva", "Bruno Fernandes",
+    "Rodri", "Declan Rice", "Bukayo Saka", "Antoine Griezmann",
+    "Pedri", "Gavi", "Jamal Musiala", "Florian Wirtz", "Lautaro Martínez"
+];
+
+// المراكز الـ 11
+const POSITIONS = [
+    "حارس مرمى (GK)", "ظهير أيمن (RB)", "قلب دفاع 1 (CB)", "قلب دفاع 2 (CB)", "ظهير أيسر (LB)",
+    "لاعب وسط 1 (CM)", "لاعب وسط 2 (CM)", "صانع ألعاب (AM)", "جناح أيمن (RW)", "جناح أيسر (LW)", "مهاجم (ST)"
+];
+
+// توليد الحقول
+function generateFields(teamId) {
+    const container = document.getElementById(`inputs-${teamId}`);
+    POSITIONS.forEach((pos, index) => {
+        const row = document.createElement('div');
+        row.className = 'position-row';
+        
+        const label = document.createElement('div');
+        label.className = 'position-label';
+        label.innerText = pos;
+
+        const searchBox = document.createElement('div');
+        searchBox.className = 'search-box';
+
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.placeholder = 'اكتب حرفين للبحث...';
+        input.id = `${teamId}_pos_${index}`;
+        input.autocomplete = "off"; // منع المتصفح من إظهار اقتراحات قديمة
+        
+        searchBox.appendChild(input);
+        row.appendChild(label);
+        row.appendChild(searchBox);
+        container.appendChild(row);
+
+        setupAutocomplete(input);
+    });
+}
+
+// دالة البحث التلقائي المصلحة والمضمونة
+function setupAutocomplete(input) {
+    input.addEventListener("input", function() {
+        let val = this.value;
+        closeAllLists();
+        
+        // لن يظهر شيء حتى يكتب المستخدم حرفين أو أكثر
+        if (!val || val.length < 2) { return false; } 
+
+        let a = document.createElement("DIV");
+        a.setAttribute("id", this.id + "autocomplete-list");
+        a.setAttribute("class", "autocomplete-items");
+        this.parentNode.appendChild(a);
+
+        let matchesFound = 0;
+        PLAYERS.forEach(player => {
+            // البحث بغض النظر عن الحروف الكبيرة أو الصغيرة
+            if (player.toUpperCase().includes(val.toUpperCase())) {
+                matchesFound++;
+                let b = document.createElement("DIV");
+                // تمييز الحروف المكتوبة بلغتهم
+                b.innerHTML = player;
+                
+                b.addEventListener("click", function() {
+                    input.value = player;
+                    closeAllLists();
+                });
+                a.appendChild(b);
+            }
+        });
+
+        // إذا لم يعثر على لاعبين لا تظهر القائمة فارغة
+        if (matchesFound === 0) {
+            closeAllLists();
+        }
+    });
+}
+
+function closeAllLists() {
+    let x = document.getElementsByClassName("autocomplete-items");
+    for (let i = 0; i < x.length; i++) {
+        x[i].parentNode.removeChild(x[i]);
+    }
+}
+
+// إغلاق القائمة عند الضغط في أي مكان خارجها
+document.addEventListener("click", function (e) {
+    if (e.target.tagName !== 'INPUT') {
+        closeAllLists();
+    }
+});
+
+// توقع النتيجة
+function predictMatch() {
+    let t1Count = 0, t2Count = 0;
+    
+    for(let i=0; i<11; i++) {
+        if(document.getElementById(`team1_pos_${i}`).value.trim() !== "") t1Count++;
+        if(document.getElementById(`team2_pos_${i}`).value.trim() !== "") t2Count++;
+    }
+
+    if(t1Count < 11 || t2Count < 11) {
+        alert("❌ يرجى ملء كافة المراكز الـ 11 لكلا الفريقين باللاعبين أولاً!");
+        return;
+    }
+
+    let score1 = Math.floor(Math.random() * 5);
+    let score2 = Math.floor(Math.random() * 5);
+    
+    let resultBox = document.getElementById("result-box");
+    resultBox.style.display = "block";
+    resultBox.style.color = "#fff";
+    
+    let winnerText = "";
+    if(score1 > score2) {
+        winnerText = "🎉 الفائز هو: اللاعب الأول!";
+        resultBox.style.backgroundColor = "#28a745";
+    } else if(score2 > score1) {
+        winnerText = "🎉 الفائز هو: اللاعب الثاني!";
+        resultBox.style.backgroundColor = "#28a745";
+    } else {
+        winnerText = "🤝 تعادل مثير بين التشكيلتين!";
+        resultBox.style.backgroundColor = "#ffc107";
+        resultBox.style.color = "#1a1a2e";
+    }
+
+    resultBox.innerHTML = `<strong>النتيجة النهائية المتوقعة:</strong><br><br> 
+                           <span style="font-size:35px;">اللاعب الأول ${score1}  -  ${score2} اللاعب الثاني</span><br><br>
+                           ${winnerText}`;
+}
+
+// التشغيل الفوري
+generateFields('team1');
+generateFields('team2');
+</script>
+</body>
+</html>

@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Career Egypt 27 | Full Squads Edition</title>
+    <style>
+        :root { --primary: #3d107a; --accent: #00ff85; --bg: #0f021f; --card: #0a0a0a; --white: #fff; }
+        body { background-color: var(--bg); color: var(--white); font-family: 'Segoe UI', Tahoma, sans-serif; margin: 0; display: flex; justify-content: center; height: 100vh; overflow: hidden; }
+        #game-window { width: 95%; max-width: 1100px; height: 95vh; background: #1a0533; margin-top: 2.5vh; border: 2px solid var(--primary); border-radius: 15px; display: flex; flex-direction: column; overflow: hidden; position: relative; }
+        .screen { display: none; padding: 20px; flex-direction: column; align-items: center; height: 100%; overflow-y: auto; }
+        .active { display: flex; }
+        .btn { background: var(--accent); color: #000; border: none; padding: 10px 20px; font-weight: bold; border-radius: 8px; cursor: pointer; margin: 5px; transition: 0.3s; }
+        
+        /* تصميم الملعب والبطاقات */
+        .pitch {
+            background: #143d1a; width: 100%; max-width: 800px; height: 480px;
+            border-radius: 15px; position: relative; border: 3px solid rgba(255,255,255,0.1); margin: 10px 0;
+            background-image: radial-gradient(circle at 50% 50%, transparent 15%, rgba(255,255,255,0.1) 15.5%, transparent 16%),
+                              linear-gradient(to bottom, transparent 49.5%, rgba(255,255,255,0.1) 50%, transparent 50.5%);
+        }
+        .player-card {
+            width: 75px; height: 95px; background: var(--card); border: 2px solid var(--accent);
+            border-radius: 8px; position: absolute; display: flex; flex-direction: column;
+            align-items: center; justify-content: center; cursor: pointer; transition: 0.2s;
+        }
+        .player-card .name { font-size: 0.6rem; font-weight: bold; margin-top: 5px; text-align: center; width: 90%; }
+        .player-card .pos-lbl { font-size: 0.5rem; color: var(--accent); }
+        
+        /* توزيع المراكز 4-3-3 */
+        .p-GK { bottom: 5%; left: 45%; }
+        .p-DEF-1 { bottom: 22%; left: 8%; } .p-DEF-2 { bottom: 22%; left: 33%; }
+        .p-DEF-3 { bottom: 22%; left: 57%; } .p-DEF-4 { bottom: 22%; left: 82%; }
+        .p-MID-1 { bottom: 50%; left: 15%; } .p-MID-2 { bottom: 50%; left: 45%; } .p-MID-3 { bottom: 50%; left: 75%; }
+        .p-FWD-1 { bottom: 78%; left: 15%; } .p-FWD-2 { bottom: 78%; left: 45%; } .p-FWD-3 { bottom: 78%; left: 75%; }
+
+        /* اختيار النادي */
+        .teams-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 15px; width: 100%; margin-top: 30px; }
+        .team-sel-btn { padding: 15px; background: var(--primary); border-radius: 8px; text-align: center; cursor: pointer; font-weight: bold; }
+        .team-sel-btn:hover { background: var(--accent); color: #000; }
+
+        .list-row { background: #2a0a52; margin: 5px; padding: 12px; border-radius: 8px; cursor: pointer; display: flex; justify-content: space-between; width: 90%; max-width: 500px; }
+        .header { width: 100%; display: flex; justify-content: space-between; padding: 10px 20px; border-bottom: 1px solid var(--primary); }
+    </style>
+</head>
+<body>
+
+<div id="game-window">
+    <!-- شاشة اختيار الفريق -->
+    <section id="scr-teams" class="screen active">
+        <h1>CAREER <span style="color:var(--accent)">EGYPT</span> 27</h1>
+        <p>اختر ناديك (الميزانية 100M لكل الفرق)</p>
+        <div id="teams-grid" class="teams-grid"></div>
+    </section>
+
+    <!-- شاشة الملعب -->
+    <section id="scr-dash" class="screen">
+        <div class="header">
+            <h2 id="club-title">النادي</h2>
+            <div style="color:gold">الميزانية: <span id="budget-val">100</span>M $</div>
+        </div>
+        <div class="pitch" id="pitch-view"></div>
+        <div>
+            <button class="btn" onclick="openMarket()">سوق الانتقالات المفتوح</button>
+            <button id="sim-btn" class="btn" style="background:#ff4757; color:white; display:none;" onclick="simulate()">بدء محاكاة الموسم</button>
+        </div>
+    </section>
+
+    <!-- اختيار لاعب لمركز -->
+    <section id="scr-select" class="screen">
+        <h2 id="sel-title">اختر لاعب</h2>
+        <div id="sel-list" style="width: 100%; display: flex; flex-direction: column; align-items: center;"></div>
+        <button class="btn" onclick="show('scr-dash')">رجوع</button>
+    </section>
+
+    <!-- الانتقالات -->
+    <section id="scr-market" class="screen">
+        <h2>سوق الانتقالات (ميزانية 100M)</h2>
+        <div id="market-list" class="teams-grid" style="grid-template-columns: repeat(3, 1fr);"></div>
+        <button class="btn" onclick="show('scr-dash')">العودة</button>
+    </section>
+
+    <!-- النتائج -->
+    <section id="scr-results" class="screen">
+        <h2>نتائج موسم 2027</h2>
+        <div id="final-res"></div>
+        <button class="btn" onclick="location.reload()">موسم جديد</button>
+    </section>
+</div>
+
+<script>
+    const slots = [
+        { id: 0, type: 'GK', class: 'p-GK' },
+        { id: 1, type: 'DEF', class: 'p-DEF-1' }, { id: 2, type: 'DEF', class: 'p-DEF-2' },
+        { id: 3, type: 'DEF', class: 'p-DEF-3' }, { id: 4, type: 'DEF', class: 'p-DEF-4' },
+        { id: 5, type: 'MID', class: 'p-MID-1' }, { id: 6, type: 'MID', class: 'p-MID-2' },
+        { id: 7, type: 'MID', class: 'p-MID-3' },
+        { id: 8, type: 'FWD', class: 'p-FWD-1' }, { id: 9, type: 'FWD', class: 'p-FWD-2' },
+        { id: 10, type: 'FWD', class: 'p-FWD-3' }
+    ];
+
+    // القائمة الكاملة بناءً على بياناتك
+    const teamsDB = [
+        { id: 1, name: "الأهلي", players: [
+            {n:"زيزو", p:"MID", r:86}, {n:"الشناوي", p:"GK", r:84}, {n:"شوبير", p:"GK", r:80}, {n:"حمزة علاء", p:"GK", r:75},
+            {n:"ياسر إبراهيم", p:"DEF", r:80}, {n:"رامي ربيعة", p:"DEF", r:79}, {n:"يوسف بلعمري", p:"DEF", r:77}, {n:"محمد هاني", p:"DEF", r:78}, {n:"عمر كمال", p:"DEF", r:78}, {n:"مصطفى العش", p:"DEF", r:76},
+            {n:"إمام عاشور", p:"MID", r:84}, {n:"مروان عطية", p:"MID", r:81}, {n:"أكرم توفيق", p:"MID", r:80}, {n:"كوكا", p:"MID", r:77}, {n:"قفشة", p:"MID", r:79}, {n:"عمر الساعي", p:"MID", r:78}, {n:"بن رمضان", p:"MID", r:80},
+            {n:"سفيان بنجديدة", p:"FWD", r:78}, {n:"منصف بقرار", p:"FWD", r:77}, {n:"حسين الشحات", p:"FWD", r:81}, {n:"رضا سليم", p:"FWD", r:80}, {n:"وسام أبو علي", p:"FWD", r:82}, {n:"محمد شريف", p:"FWD", r:79}
+        ]},
+        { id: 2, name: "الزمالك", players: [
+            {n:"محمد عواد", p:"GK", r:78}, {n:"محمد صبحي", p:"GK", r:76}, {n:"المهدي سليمان", p:"GK", r:77},
+            {n:"الونش", p:"DEF", r:79}, {n:"عمر جابر", p:"DEF", r:77}, {n:"أحمد فتوح", p:"DEF", r:80}, {n:"حسام عبد المجيد", p:"DEF", r:77}, {n:"مصطفى الزناري", p:"DEF", r:75}, {n:"أحمد محمود", p:"DEF", r:74},
+            {n:"عبد الله السعيد", p:"MID", r:81}, {n:"ناصر ماهر", p:"MID", r:79}, {n:"محمد شحاتة", p:"MID", r:77}, {n:"دونجا", p:"MID", r:78}, {n:"سيف جعفر", p:"MID", r:75}, {n:"محمد السيد", p:"MID", r:74},
+            {n:"ناصر منسي", p:"FWD", r:75}, {n:"عدي الدباغ", p:"FWD", r:77}, {n:"خوان بيزيرا", p:"FWD", r:76}, {n:"حسام أشرف", p:"FWD", r:75}
+        ]},
+        { id: 3, name: "بيراميدز", players: [
+            {n:"أحمد الشناوي", p:"GK", r:80}, {n:"محمود جاد", p:"GK", r:78},
+            {n:"إياد العسقلاني", p:"DEF", r:77}, {n:"محمود مرعي", p:"DEF", r:78}, {n:"الشيبي", p:"DEF", r:81}, {n:"محمد حمدي", p:"DEF", r:79}, {n:"أسامة جلال", p:"DEF", r:79}, {n:"كريم حافظ", p:"DEF", r:77},
+            {n:"رمضان صبحي", p:"MID", r:82}, {n:"مصطفى فتحي", p:"MID", r:81}, {n:"وليد الكرتي", p:"MID", r:81}, {n:"بلاتي توريه", p:"MID", r:81}, {n:"مهند لاشين", p:"MID", r:79}, {n:"مصطفى زيكو", p:"MID", r:78}, {n:"محمود صابر", p:"MID", r:77},
+            {n:"فيستون ماييلي", p:"FWD", r:83}, {n:"مروان حمدي", p:"FWD", r:79}, {n:"أوباما", p:"FWD", r:78}, {n:"عبد الرحمن مجدي", p:"FWD", r:79}
+        ]},
+        { id: 4, name: "المصري", players: [{n:"باهر المحمدي", p:"DEF", r:77}, {n:"ميدو جابر", p:"MID", r:78}, {n:"صلاح محسن", p:"FWD", r:76}] },
+        { id: 5, name: "الإسماعيلي", players: [{n:"أحمد عادل", p:"GK", r:75}, {n:"نادر فرج", p:"FWD", r:73}] },
+        { id: 6, name: "الاتحاد", players: [{n:"المهدي سليمان", p:"GK", r:76}, {n:"مابولولو", p:"FWD", r:80}] },
+        { id: 7, name: "مودرن سبورت", players: [{n:"جنش", p:"GK", r:76}, {n:"أحمد عاطف", p:"FWD", r:77}] },
+        { id: 8, name: "سموحة", players: [{n:"الهاني سليمان", p:"GK", r:75}, {n:"حسام حسن", p:"FWD", r:76}] },
+        { id: 9, name: "سيراميكا", players: [{n:"محمد بسام", p:"GK", r:77}, {n:"قندوسي", p:"MID", r:79}] },
+        { id: 10, name: "زد FC", players: [{n:"علي لطفي", p:"GK", r:76}, {n:"شادي حسين", p:"FWD", r:76}] }
+    ];
+
+    let game = { team: null, squad: [], starters: new Array(11).fill(null), budget: 100 };
+
+    window.onload = () => {
+        const grid = document.getElementById('teams-grid');
+        teamsDB.forEach(t => {
+            const div = document.createElement('div');
+            div.className = 'team-sel-btn';
+            div.innerText = t.name;
+            div.onclick = () => { game.team = t; game.squad = [...t.players]; show('scr-dash'); drawPitch(); };
+            grid.appendChild(div);
+        });
+    };
+
+    function show(id) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+    }
+
+    function drawPitch() {
+        document.getElementById('club-title').innerText = "نادي " + game.team.name;
+        document.getElementById('budget-val').innerText = game.budget;
+        const pitch = document.getElementById('pitch-view'); pitch.innerHTML = '';
+        slots.forEach(slot => {
+            const p = game.starters[slot.id];
+            const card = document.createElement('div');
+            card.className = `player-card ${slot.class} ${!p ? 'empty' : ''}`;
+            card.innerHTML = p ? `<div class="pos-lbl">${p.p}</div><div class="name">${p.n}</div><div style="font-size:0.8rem;color:gold">${p.r}</div>` : `<div>+</div>`;
+            card.onclick = () => openSelect(slot.type, slot.id);
+            pitch.appendChild(card);
+        });
+        document.getElementById('sim-btn').style.display = game.starters.every(x => x !== null) ? 'block' : 'none';
+    }
+
+    function openSelect(pos, idx) {
+        show('scr-select');
+        document.getElementById('sel-title').innerText = `اختر ${pos} من القائمة`;
+        const list = document.getElementById('sel-list'); list.innerHTML = '';
+        game.squad.filter(p => p.p === pos).forEach(p => {
+            const used = game.starters.some(s => s && s.n === p.n);
+            const div = document.createElement('div'); div.className = 'list-row';
+            div.style.opacity = used ? '0.4' : '1';
+            div.innerHTML = `<span>${p.n}</span> <span>⭐ ${p.r}</span>`;
+            div.onclick = () => { if(!used) { game.starters[idx] = p; show('scr-dash'); drawPitch(); } };
+            list.appendChild(div);
+        });
+    }
+
+    function openMarket() {
+        show('scr-market');
+        const list = document.getElementById('market-list'); list.innerHTML = '';
+        teamsDB.forEach(t => {
+            if(t.id === game.team.id) return;
+            t.players.slice(0,4).forEach(p => {
+                const div = document.createElement('div'); div.className = 'team-sel-btn';
+                div.innerHTML = `<div>${p.n}</div><div style="font-size:0.7rem">${t.name}</div><button class="btn" style="padding:5px" onclick="buy('${p.n}','${p.p}',${p.r})">20M</button>`;
+                list.appendChild(div);
+            });
+        });
+    }
+
+    function buy(n, p, r) {
+        if(game.budget < 20) return alert("الميزانية لا تكفي!");
+        game.squad.push({n, p, r}); game.budget -= 20;
+        openMarket(); alert("تم شراء " + n);
+    }
+
+    function simulate() {
+        show('scr-results');
+        document.getElementById('final-res').innerHTML = `<h3>انتهى الموسم!</h3><p>مبروك لنادي ${game.team.name} بطل دوري 2027.</p>`;
+    }
+</script>
+</body>
+</html>

@@ -1,0 +1,184 @@
+:root {
+            --pitch-color: #2e7d32;
+            --line-color: rgba(255, 255, 255, 0.6);
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #121212;
+            color: #fff;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        h1 {
+            margin-bottom: 10px;
+            color: #4caf50;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        }
+
+        /* ملعب كرة القدم */
+        .pitch {
+            width: 100%;
+            max-width: 500px;
+            height: 650px;
+            background-color: var(--pitch-color);
+            background-image: linear-gradient(to bottom, #2e7d32 50%, #27662a 50%);
+            background-size: 100% 100px;
+            border: 4px solid #fff;
+            border-radius: 10px;
+            position: relative;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 20px 0;
+            box-sizing: border-box;
+        }
+
+        /* خطوط الملعب */
+        .pitch::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: var(--line-color);
+            transform: translateY(-50%);
+        }
+
+        .center-circle {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 100px;
+            height: 100px;
+            border: 2px solid var(--line-color);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        /* خطوط المراكز (الصفوف) */
+        .line {
+            display: flex;
+            justify-content: space-around;
+            width: 100%;
+            z-index: 2;
+        }
+
+        /* كارت اللاعب */
+        .player-slot {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            transition: transform 0.2s;
+            width: 80px;
+        }
+
+        .player-slot:hover {
+            transform: scale(1.1);
+        }
+
+        .player-icon {
+            width: 55px;
+            height: 55px;
+            background-color: #1e1e1e;
+            border: 3px solid #ffd700;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        }
+
+        .player-name {
+            background-color: rgba(0, 0, 0, 0.75);
+            padding: 3px 8px;
+            border-radius: 5px;
+            font-size: 12px;
+            margin-top: 6px;
+            text-align: center;
+            white-space: nowrap;
+            max-width: 90px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        /* النافذة المنبثقة (Popup) */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.8);
+            z-index: 10;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background-color: #1e1e1e;
+            padding: 25px;
+            border-radius: 15px;
+            width: 85%;
+            max-width: 400px;
+            text-align: center;
+            border: 2px solid #4caf50;
+            box-shadow: 0 5px 25px rgba(0,0,0,0.5);
+        }
+
+        .modal-content h3 {
+            margin-top: 0;
+            color: #ffd700;
+            margin-bottom: 20px;
+        }
+
+        .players-list {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+
+        .player-option {
+            background-color: #2e2e2e;
+            padding: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .player-option:hover {
+            background-color: #4caf50;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .close-btn {
+            margin-top: 20px;
+            background-color: #e53935;
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .close-btn:hover {
+            background-color: #b71c1c;
+        }
