@@ -1,195 +1,91 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ar" dir="rtl">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>لعبة الدوري المصري</title>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>تحدي المزاد المصري - نسخة المذيع</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <h1>🏆 تحدي المزاد المصري 🏆</h1>
+    <p class="sub-title">نسخة المذيع (الأهلي والزمالك - من الحارس للمهاجم)</p>
 
-<style>
-body{
-    font-family:Arial,sans-serif;
-    background:linear-gradient(#111,#333);
-    color:white;
-    text-align:center;
-    margin:0;
-    padding:20px;
-}
+    <div id="turn-banner" class="turn-banner p1-turn">
+      دور اللاعب الأول: ابدأ بسحب لاعب عشوائي 🎲
+    </div>
 
-h1{
-    color:gold;
-}
+    <div class="admin-panel">
+      <div id="current-player">اضغط "🎲 لاعب عشوائي" للبدء</div>
 
-.container{
-    display:flex;
-    justify-content:center;
-    gap:20px;
-    flex-wrap:wrap;
-    margin-top:30px;
-}
+      <button class="btn btn-rand" id="reveal-btn" onclick="showRandomPlayer()">
+        🎲 لاعب عشوائي
+      </button>
 
-.card{
-    background:#222;
-    width:230px;
-    padding:20px;
-    border-radius:20px;
-}
+      <div class="admin-row">
+        <div class="bids-wrapper">
+          <div class="bid-box">
+            <label>مزايدة اللاعب الأول (M): </label>
+            <input type="number" id="bid_price_1" value="0" min="0" />
+          </div>
+          <div class="bid-box">
+            <label>مزايدة اللاعب الثاني (M): </label>
+            <input type="number" id="bid_price_2" value="0" min="0" />
+          </div>
+        </div>
+        <div>
+          <button class="btn btn-resolve" onclick="resolveAuction()">
+            إتمام المزاد 🔨
+          </button>
+        </div>
+      </div>
+    </div>
 
-.card img{
-    width:150px;
-    height:150px;
-    border-radius:50%;
-    object-fit:cover;
-    border:4px solid white;
-}
+    <div class="teams-container">
+      <div class="team-box">
+        <h2>اللاعب الأول</h2>
+        <div class="budget">الميزانية: <span id="budget_1">100</span>M</div>
+        <div class="player-list" id="list_1"></div>
+      </div>
 
-select,button{
-    padding:10px;
-    border:none;
-    border-radius:10px;
-    margin-top:10px;
-}
+      <div class="team-box">
+        <h2>اللاعب الثاني</h2>
+        <div class="budget">الميزانية: <span id="budget_2">100</span>M</div>
+        <div class="player-list" id="list_2"></div>
+      </div>
+    </div>
 
-button{
-    background:green;
-    color:white;
-    font-size:18px;
-    cursor:pointer;
-    margin-top:30px;
-}
-</style>
-</head>
-<body>
+    <br /><br />
 
-<h1>⚽ اختار لاعبك المفضل</h1>
+    <button class="btn btn-rand" onclick="predictWinner()">
+      🤖 توقع الذكاء الاصطناعي
+    </button>
 
-<h2 id="position"></h2>
+    <div
+      id="prediction"
+      style="
+        margin-top: 20px;
+        font-size: 22px;
+        background: #1c2541;
+        padding: 20px;
+        border-radius: 12px;
+        max-width: 700px;
+        margin-left: auto;
+        margin-right: auto;
+      "
+    ></div>
 
-<div class="container" id="players"></div>
+    <div class="luck-section">
+      <button class="btn btn-rand btn-luck" onclick="drawCard()">
+        🃏 اسحب كارت الحظ
+      </button>
 
-<button onclick="nextRound()">مركز جديد</button>
+      <div id="luckCard" class="card-container">
+        <div id="cardIcon">❓</div>
+        <h3 id="cardTitle">اضغط لسحب كارت</h3>
+        <p id="cardDesc">هل حظك اليوم جيد أم سيء؟ جرب الآن!</p>
+      </div>
+    </div>
 
-<script>
-
-const data = [
-
-{
-position:"حارس مرمى",
-players:[
-{name:"مصطفى شوبير",team:"الأهلي",img:"https://images.koora.com/i/p/142/902/mustafa-shobeir-1.png"},
-{name:"محمد عواد",team:"الزمالك",img:"https://images.koora.com/i/p/107/334/mohamed-awad-1.png"},
-{name:"أحمد الشناوي",team:"بيراميدز",img:"https://images.koora.com/i/p/16/911/ahmed-el-shenawy-1.png"}
-]
-},
-
-{
-position:"ظهير أيمن",
-players:[
-{name:"محمد هاني",team:"الأهلي",img:"https://images.koora.com/i/p/103/612/mohamed-hany-1.png"},
-{name:"عمر جابر",team:"الزمالك",img:"https://images.koora.com/i/p/35/437/omar-gaber-1.png"},
-{name:"محمد الشيبي",team:"بيراميدز",img:"https://images.koora.com/i/p/144/228/mohamed-chibi-1.png"}
-]
-},
-
-{
-position:"قلب دفاع",
-players:[
-{name:"ياسر إبراهيم",team:"الأهلي",img:"https://images.koora.com/i/p/92/757/yasser-ibrahim-1.png"},
-{name:"حسام عبد المجيد",team:"الزمالك",img:"https://images.koora.com/i/p/142/165/hossam-abdelmaguid-1.png"},
-{name:"أحمد سامي",team:"بيراميدز",img:"https://images.koora.com/i/p/123/240/ahmed-samy-1.png"}
-]
-},
-
-{
-position:"ظهير أيسر",
-players:[
-{name:"محمد شكري",team:"الأهلي",img:"https://images.koora.com/i/p/142/913/mohamed-shokry-1.png"},
-{name:"أحمد فتوح",team:"الزمالك",img:"https://images.koora.com/i/p/123/462/ahmed-fatouh-1.png"},
-{name:"محمد حمدي",team:"بيراميدز",img:"https://images.koora.com/i/p/103/619/mohamed-hamdy-1.png"}
-]
-},
-
-{
-position:"وسط دفاعي",
-players:[
-{name:"مروان عطية",team:"الأهلي",img:"https://images.koora.com/i/p/141/141/marwan-attia-1.png"},
-{name:"محمد شحاتة",team:"الزمالك",img:"https://images.koora.com/i/p/150/121/mohamed-shehata-1.png"},
-{name:"مهند لاشين",team:"بيراميدز",img:"https://images.koora.com/i/p/129/615/mohanad-lasheen-1.png"}
-]
-},
-
-{
-position:"وسط هجومي",
-players:[
-{name:"إمام عاشور",team:"الأهلي",img:"https://images.koora.com/i/p/126/651/emam-ashour-1.png"},
-{name:"عبد الله السعيد",team:"الزمالك",img:"https://images.koora.com/i/p/15/886/abdallah-el-said-1.png"},
-{name:"وليد الكرتي",team:"بيراميدز",img:"https://images.koora.com/i/p/90/162/walid-el-karti-1.png"}
-]
-},
-
-{
-position:"جناح أيمن",
-players:[
-{name:"زيزو",team:"الأهلي",img:"https://images.koora.com/i/p/102/219/ahmed-sayed-zizo-1.png"},
-{name:"خوان بيزيرا",team:"الزمالك",img:"https://images.koora.com/i/p/162/115/juan-carlos-bezerra-1.png"},
-{name:"مصطفى فتحي",team:"بيراميدز",img:"https://images.koora.com/i/p/74/483/mostafa-fathi-1.png"}
-]
-},
-
-{
-position:"جناح أيسر",
-players:[
-{name:"تريزيجيه",team:"الأهلي",img:"https://images.koora.com/i/p/35/658/trezeguet-1.png"},
-{name:"شيكو بانزا",team:"الزمالك",img:"https://images.koora.com/i/p/160/220/chico-banza-1.png"},
-{name:"زيكو",team:"بيراميدز",img:"https://images.koora.com/i/p/148/910/mostafa-ziko-1.png"}
-]
-},
-
-{
-position:"مهاجم",
-players:[
-{name:"محمد شريف",team:"الأهلي",img:"https://images.koora.com/i/p/108/611/mohamed-sherif-1.png"},
-{name:"عدي الدباغ",team:"الزمالك",img:"https://images.koora.com/i/p/124/813/oudai-dabbagh-1.png"},
-{name:"فيستون ماييلي",team:"بيراميدز",img:"https://images.koora.com/i/p/154/333/fiston-mayele-1.png"}
-]
-}
-
-];
-
-function nextRound(){
-
-let round=data[Math.floor(Math.random()*data.length)];
-
-document.getElementById("position").innerText=round.position;
-
-let html="";
-
-round.players.forEach(player=>{
-
-html+=`
-<div class="card">
-<img src="${player.img}"
-onerror="this.src='https://via.placeholder.com/150'">
-<h2>${player.name}</h2>
-<h3>${player.team}</h3>
-
-<select>
-<option>اختر</option>
-<option>أساسي</option>
-<option>احتياطي</option>
-<option>بيع</option>
-</select>
-
-</div>
-`;
-
-});
-
-document.getElementById("players").innerHTML=html;
-}
-
-nextRound();
-
-</script>
-
-</body>
+    <script src="script2.js"></script>
+  </body>
 </html>

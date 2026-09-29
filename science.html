@@ -1,0 +1,212 @@
+from pathlib import Path
+import base64
+
+img1 = Path("/mnt/data/9cf45aa2-2829-4e8e-a515-bb629c6b7d3f.png")
+img2 = Path("/mnt/data/3315fd30-6ad0-45aa-9b77-c72c4fb26240.png")
+
+b64_1 = base64.b64encode(img1.read_bytes()).decode("utf-8")
+b64_2 = base64.b64encode(img2.read_bytes()).decode("utf-8")
+
+html = r'''<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Waves Lab | Mechanical & Electromagnetic Waves</title>
+<style>
+:root{
+  --bg:#07111f; --card:#0e1c30; --card2:#10243d; --text:#edf6ff;
+  --muted:#a9bdd2; --cyan:#35d6ff; --blue:#4d7cff; --pink:#ff5ea8;
+  --green:#55e6a5; --yellow:#ffd45c; --line:rgba(255,255,255,.11);
+}
+*{box-sizing:border-box;scroll-behavior:smooth}
+body{
+  margin:0;font-family:Inter,Segoe UI,Arial,sans-serif;color:var(--text);
+  background:
+   radial-gradient(circle at 10% 10%,rgba(53,214,255,.13),transparent 25%),
+   radial-gradient(circle at 90% 20%,rgba(255,94,168,.12),transparent 25%),
+   radial-gradient(circle at 50% 100%,rgba(77,124,255,.14),transparent 30%),
+   var(--bg);
+  line-height:1.65;
+}
+body:before{
+ content:"";position:fixed;inset:0;pointer-events:none;opacity:.25;
+ background-image:linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),
+ linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px);
+ background-size:40px 40px;
+}
+nav{
+ position:sticky;top:0;z-index:20;backdrop-filter:blur(16px);
+ background:rgba(7,17,31,.78);border-bottom:1px solid var(--line);
+}
+.navin{max-width:1180px;margin:auto;padding:14px 22px;display:flex;align-items:center;justify-content:space-between;gap:20px}
+.logo{font-weight:900;letter-spacing:.5px}.logo span{color:var(--cyan)}
+nav a{color:var(--muted);text-decoration:none;margin-left:18px;font-size:14px}
+nav a:hover{color:white}
+.hero{max-width:1180px;margin:auto;padding:85px 22px 55px;display:grid;grid-template-columns:1.15fr .85fr;gap:45px;align-items:center}
+.badge{display:inline-block;padding:7px 13px;border:1px solid rgba(53,214,255,.35);border-radius:999px;color:var(--cyan);background:rgba(53,214,255,.08);font-size:13px;font-weight:700}
+h1{font-size:clamp(42px,6vw,78px);line-height:1.02;margin:18px 0;background:linear-gradient(90deg,#fff,var(--cyan),#b58cff);-webkit-background-clip:text;color:transparent}
+.hero p{font-size:19px;color:var(--muted);max-width:700px}
+.btns{display:flex;gap:12px;flex-wrap:wrap;margin-top:25px}
+.btn{display:inline-block;text-decoration:none;padding:12px 18px;border-radius:12px;font-weight:800;border:1px solid var(--line);color:white;background:var(--card)}
+.btn.primary{background:linear-gradient(135deg,var(--blue),var(--cyan));border:0}
+.hero-art{height:360px;border-radius:30px;border:1px solid var(--line);background:linear-gradient(145deg,rgba(53,214,255,.10),rgba(255,94,168,.07));position:relative;overflow:hidden;box-shadow:0 25px 70px rgba(0,0,0,.28)}
+.wave{position:absolute;left:-10%;width:120%;height:120px;border:4px solid var(--cyan);border-color:var(--cyan) transparent transparent transparent;border-radius:50%;transform:rotate(-4deg);animation:float 4s ease-in-out infinite}
+.w1{top:95px}.w2{top:150px;left:-15%;border-color:var(--pink) transparent transparent transparent;animation-delay:.6s}.w3{top:205px;left:-5%;border-color:var(--yellow) transparent transparent transparent;animation-delay:1.2s}
+.particle{position:absolute;width:9px;height:9px;border-radius:50%;background:white;box-shadow:0 0 18px var(--cyan);animation:travel 5s linear infinite}
+.p1{top:165px}.p2{top:110px;animation-delay:1.7s}.p3{top:220px;animation-delay:3s}
+@keyframes float{50%{transform:translateY(-12px) rotate(-4deg)}} @keyframes travel{from{left:-5%}to{left:105%}}
+section{max-width:1180px;margin:auto;padding:70px 22px}
+.section-title{text-align:center;margin-bottom:38px}.section-title h2{font-size:38px;margin:0 0 8px}.section-title p{color:var(--muted);margin:0}
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.card{background:linear-gradient(145deg,rgba(255,255,255,.055),rgba(255,255,255,.025));border:1px solid var(--line);border-radius:20px;padding:25px;box-shadow:0 18px 45px rgba(0,0,0,.16)}
+.card .icon{font-size:34px}.card h3{margin:10px 0 7px}.card p{color:var(--muted)}
+.tag{display:inline-block;font-size:12px;font-weight:800;padding:5px 9px;border-radius:8px;background:rgba(53,214,255,.1);color:var(--cyan)}
+.visual-card{overflow:hidden;padding:0}.visual-card img{width:100%;display:block;max-height:610px;object-fit:contain;background:#fff}.visual-card .inside{padding:20px}
+.types{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.type{border-radius:22px;padding:26px;border:1px solid var(--line);min-height:270px;position:relative;overflow:hidden}
+.type:after{content:"";position:absolute;width:150px;height:150px;border-radius:50%;right:-50px;bottom:-50px;background:rgba(53,214,255,.10)}
+.type:nth-child(2):after{background:rgba(255,94,168,.10)} .type:nth-child(3):after{background:rgba(255,212,92,.10)}
+.type h3{font-size:24px;margin:8px 0}.type p{color:var(--muted)}
+.motion{margin-top:15px;padding:13px;border-radius:12px;background:rgba(0,0,0,.2);font-weight:700}
+.compare-wrap{overflow:auto;border:1px solid var(--line);border-radius:20px}
+table{width:100%;border-collapse:collapse;min-width:760px;background:rgba(10,23,40,.7)}
+th,td{padding:17px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{background:rgba(53,214,255,.08);color:var(--cyan)}td:first-child{font-weight:800;color:white}td{color:var(--muted)}
+.highlight{color:var(--green);font-weight:800}
+.speed{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:25px}.speedbox{padding:25px;border-radius:18px;background:var(--card);border:1px solid var(--line)}.number{font-size:34px;font-weight:900;color:var(--cyan)}
+.quiz{max-width:850px;margin:auto;border:1px solid var(--line);border-radius:25px;padding:28px;background:linear-gradient(145deg,rgba(53,214,255,.07),rgba(77,124,255,.06))}
+.q{font-size:21px;font-weight:800;margin-bottom:18px}.answers{display:grid;grid-template-columns:1fr 1fr;gap:12px}.answer{cursor:pointer;padding:14px;border-radius:13px;border:1px solid var(--line);background:rgba(255,255,255,.04);color:white;font-size:16px}.answer:hover{border-color:var(--cyan);transform:translateY(-2px)}.answer.correct{background:rgba(85,230,165,.16);border-color:var(--green)}.answer.wrong{background:rgba(255,94,168,.16);border-color:var(--pink)}
+#feedback{margin-top:18px;font-weight:800}.score{color:var(--yellow)}
+footer{text-align:center;padding:40px 20px;color:var(--muted);border-top:1px solid var(--line)}
+@media(max-width:850px){.hero{grid-template-columns:1fr}.cards,.types{grid-template-columns:1fr}.speed{grid-template-columns:1fr}.answers{grid-template-columns:1fr}nav .links{display:none}}
+</style>
+</head>
+<body>
+<nav>
+ <div class="navin">
+  <div class="logo">WAVES <span>LAB</span> 🌊</div>
+  <div class="links"><a href="#basics">Basics</a><a href="#types">Types</a><a href="#compare">Compare</a><a href="#quiz">Quiz</a></div>
+ </div>
+</nav>
+
+<header class="hero">
+ <div>
+  <span class="badge">PHYSICS • WAVES • INTERACTIVE LESSON</span>
+  <h1>Understand Waves<br>Like Never Before.</h1>
+  <p>Explore how waves transfer energy, how particles move, and what makes mechanical and electromagnetic waves different.</p>
+  <div class="btns"><a class="btn primary" href="#basics">Start Learning ↓</a><a class="btn" href="#quiz">Test Yourself</a></div>
+ </div>
+ <div class="hero-art" aria-label="Animated wave illustration">
+   <div class="wave w1"></div><div class="wave w2"></div><div class="wave w3"></div>
+   <span class="particle p1"></span><span class="particle p2"></span><span class="particle p3"></span>
+ </div>
+</header>
+
+<section id="basics">
+ <div class="section-title"><h2>What is a Wave?</h2><p>The big idea behind everything you see below.</p></div>
+ <div class="cards">
+  <article class="card"><div class="icon">⚡</div><h3>Energy Transfer</h3><p>A wave transfers <b>energy</b> from one place to another without transporting matter along with it.</p></article>
+  <article class="card"><div class="icon">🔄</div><h3>Particle Vibration</h3><p>In a mechanical wave, particles vibrate around their equilibrium positions while the disturbance travels.</p></article>
+  <article class="card"><div class="icon">🚀</div><h3>Wave Motion</h3><p>The wave can move forward even though individual particles mainly oscillate around their original positions.</p></article>
+ </div>
+</section>
+
+<section id="types">
+ <div class="section-title"><h2>Three Important Wave Motions</h2><p>Transverse, longitudinal, and surface waves.</p></div>
+ <div class="types">
+  <article class="type"><span class="tag">01 • TRANSVERSE</span><h3>↕️ Up & Down</h3><p>Particles move <b>perpendicular</b> to the direction the wave travels.</p><div class="motion">Examples: waves on a rope, many water-wave models.</div></article>
+  <article class="type"><span class="tag">02 • LONGITUDINAL</span><h3>↔️ Back & Forth</h3><p>Particles move <b>parallel</b> to the direction the wave travels.</p><div class="motion">Key terms: <b>compression</b> + <b>rarefaction</b>.</div></article>
+  <article class="type"><span class="tag">03 • SURFACE</span><h3>🌊 Mixed Motion</h3><p>Particles at a surface can show a mixture of <b>transverse and longitudinal</b> motion.</p><div class="motion">Example: waves traveling across the surface of water.</div></article>
+ </div>
+</section>
+
+<section>
+ <div class="section-title"><h2>Your Study Notes</h2><p>The two reference sheets turned into a clean digital lesson.</p></div>
+ <div class="cards">
+  <article class="card visual-card"><img src="data:image/png;base64,''' + b64_1 + r'''" alt="Types of waves study sheet"><div class="inside"><span class="tag">REFERENCE 01</span><h3>Types of Waves</h3><p>Transverse, longitudinal, and surface waves — including how the particles move.</p></div></article>
+  <article class="card visual-card"><img src="data:image/png;base64,''' + b64_2 + r'''" alt="Mechanical versus electromagnetic waves study sheet"><div class="inside"><span class="tag">REFERENCE 02</span><h3>Mechanical vs Electromagnetic</h3><p>A comparison of medium, type, speed, examples, source, and uses.</p></div></article>
+ </div>
+</section>
+
+<section id="compare">
+ <div class="section-title"><h2>Mechanical vs Electromagnetic</h2><p>One table to remember the essential differences.</p></div>
+ <div class="compare-wrap">
+ <table>
+  <thead><tr><th>Feature</th><th>Mechanical Wave</th><th>Electromagnetic Wave</th></tr></thead>
+  <tbody>
+   <tr><td>Definition</td><td>A wave that transfers energy through particle vibration.</td><td>A wave of oscillating electric and magnetic fields.</td></tr>
+   <tr><td>Medium</td><td>Needs a material medium.</td><td><span class="highlight">Can travel in vacuum.</span></td></tr>
+   <tr><td>Type</td><td>Can be transverse or longitudinal.</td><td>Always transverse in the standard school model.</td></tr>
+   <tr><td>Speed</td><td>Depends on the medium.</td><td>About <b>3 × 10⁸ m/s</b> in vacuum.</td></tr>
+   <tr><td>Examples</td><td>Sound, water and seismic waves.</td><td>Light, radio waves and X-rays.</td></tr>
+   <tr><td>Source</td><td>Produced by vibrating matter.</td><td>Produced by accelerating electric charges.</td></tr>
+   <tr><td>Uses</td><td>Sound transmission and studying earthquakes.</td><td>Communication, vision, imaging and more.</td></tr>
+  </tbody>
+ </table>
+ </div>
+ <div class="speed">
+  <div class="speedbox"><span class="tag">ELECTROMAGNETIC</span><div class="number">3 × 10⁸ m/s</div><div>Speed of electromagnetic waves in vacuum.</div></div>
+  <div class="speedbox"><span class="tag">MECHANICAL</span><div class="number">Depends</div><div>The speed changes with the material and the type of wave.</div></div>
+ </div>
+</section>
+
+<section id="quiz">
+ <div class="section-title"><h2>Quick Wave Quiz 🧠</h2><p>Choose an answer and see your score.</p></div>
+ <div class="quiz">
+  <div id="question" class="q"></div>
+  <div id="answers" class="answers"></div>
+  <div id="feedback"></div>
+  <div style="margin-top:18px">Score: <span id="score" class="score">0</span> / <span id="total">0</span></div>
+ </div>
+</section>
+
+<footer>
+ <b>Waves Lab</b> • Physics learning page<br>
+Energy travels. Matter does not have to travel with it. 🌊⚡
+</footer>
+
+<script>
+const questions=[
+ {q:"Which wave needs a material medium?",a:["Mechanical wave","Electromagnetic wave","Both always","Neither"],c:0},
+ {q:"In a transverse wave, particles move...",a:["Parallel to the wave direction","Perpendicular to the wave direction","Only forward","In a vacuum"],c:1},
+ {q:"What are the crowded regions in a longitudinal wave called?",a:["Crests","Troughs","Compressions","Reflections"],c:2},
+ {q:"Which can travel through a vacuum?",a:["Sound","A mechanical wave","An electromagnetic wave","A seismic wave"],c:2},
+ {q:"Approximately how fast does light travel in vacuum?",a:["3 × 10⁴ m/s","3 × 10⁶ m/s","3 × 10⁸ m/s","3 × 10¹² m/s"],c:2},
+ {q:"A surface wave can combine...",a:["Only sound and light","Transverse and longitudinal motion","Only compression","Only rarefaction"],c:1}
+];
+let i=0,score=0;
+const qEl=document.getElementById("question"), aEl=document.getElementById("answers"), fEl=document.getElementById("feedback");
+function render(){
+ if(i>=questions.length){
+  qEl.textContent="Quiz complete! 🎉";
+  aEl.innerHTML="";
+  fEl.innerHTML=`You scored <b>${score}/${questions.length}</b>. Review the sections above and try again!`;
+  return;
+ }
+ const x=questions[i]; qEl.textContent=`${i+1}. ${x.q}`;
+ aEl.innerHTML="";
+ fEl.textContent="";
+ x.a.forEach((ans,n)=>{
+  const b=document.createElement("button");b.className="answer";b.textContent=ans;
+  b.onclick=()=>choose(n,b);aEl.appendChild(b);
+ });
+ document.getElementById("score").textContent=score;
+ document.getElementById("total").textContent=questions.length;
+}
+function choose(n,b){
+ [...aEl.children].forEach(x=>x.disabled=true);
+ if(n===questions[i].c){score++;b.classList.add("correct");fEl.textContent="✅ Correct!";}
+ else {b.classList.add("wrong");aEl.children[questions[i].c].classList.add("correct");fEl.textContent="❌ Not quite — the highlighted answer is correct.";}
+ document.getElementById("score").textContent=score;
+ setTimeout(()=>{i++;render()},900);
+}
+render();
+</script>
+</body>
+</html>'''
+
+out = Path("/mnt/data/waves_lab.html")
+out.write_text(html, encoding="utf-8")
+print(f"Created: {out}")
+print(f"Size: {out.stat().st_size/1024:.1f} KB")

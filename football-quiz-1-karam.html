@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>National Team Quiz - Karam Rami</title>
+    <style>
+        :root {
+            --primary: #00ff87;
+            --danger: #ff4757;
+            --pitch-green: #114d2a;
+            --dark-bg: #050a18;
+            --gold: #ffcc00;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Arial', sans-serif; }
+
+        body {
+            background-color: var(--dark-bg);
+            color: white;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        /* Container */
+        .game-app {
+            width: 100%;
+            max-width: 600px;
+            height: 98vh;
+            background: linear-gradient(180deg, #0a1931 0%, #041131 100%);
+            border-radius: 20px;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            padding: 15px;
+            border: 2px solid rgba(255,255,255,0.1);
+        }
+
+        /* Screens */
+        .screen {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 100; background: var(--dark-bg);
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            border-radius: 20px; text-align: center; padding: 20px;
+        }
+        .hidden { display: none !important; }
+
+        /* The Pitch (3D Perspective like screenshots) */
+        .pitch-container {
+            flex-grow: 1;
+            perspective: 1000px;
+            position: relative;
+            margin-top: 10px;
+        }
+
+        .pitch {
+            width: 100%;
+            height: 100%;
+            background-color: var(--pitch-green);
+            background-image: 
+                linear-gradient(rgba(255,255,255,0.1) 2px, transparent 2px),
+                linear-gradient(90deg, rgba(255,255,255,0.1) 2px, transparent 2px);
+            background-size: 40px 40px;
+            transform: rotateX(25deg);
+            border: 4px solid white;
+            border-radius: 10px;
+            position: relative;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            overflow: hidden;
+        }
+
+        .pitch-lines {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            border: 2px solid rgba(255,255,255,0.5);
+            pointer-events: none;
+        }
+        .center-circle {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 120px; height: 120px; border: 2px solid rgba(255,255,255,0.5); border-radius: 50%;
+        }
+
+        /* Player Nodes (Logos) */
+        .player-node {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.4);
+            border: 2px solid var(--primary);
+            z-index: 10;
+            transition: 0.3s;
+        }
+        .player-node img { width: 80%; height: 80%; object-fit: contain; }
+        .player-node span { color: black; font-size: 8px; font-weight: bold; text-align: center; }
+
+        /* Stats Bar */
+        .header-ui {
+            display: flex; justify-content: space-between; align-items: center;
+            background: rgba(0,0,0,0.5); padding: 10px; border-radius: 12px; margin-bottom: 10px;
+        }
+        .p-box { text-align: center; flex: 1; }
+        .p-box.active { color: var(--primary); font-weight: bold; text-shadow: 0 0 10px var(--primary); }
+        .timer-circle {
+            width: 45px; height: 45px; border: 3px solid var(--primary);
+            border-radius: 50%; display: flex; justify-content: center; align-items: center;
+            font-weight: bold; margin: 0 10px;
+        }
+
+        /* Controls */
+        .footer-ui { background: rgba(0,0,0,0.3); padding: 15px; border-radius: 15px; margin-top: 10px; }
+        .input-field {
+            width: 100%; padding: 12px; border-radius: 10px; border: none;
+            text-align: center; font-size: 1.1rem; margin-bottom: 10px; outline: none;
+        }
+        .btn {
+            width: 100%; padding: 12px; border: none; border-radius: 10px;
+            font-weight: bold; cursor: pointer; background: var(--primary); color: #050a18;
+            text-transform: uppercase;
+        }
+
+        /* Suggestions */
+        #suggestions {
+            position: absolute; bottom: 140px; left: 20px; right: 20px;
+            background: white; border-radius: 10px; max-height: 150px; overflow-y: auto; z-index: 200; display: none;
+        }
+        .sug-item { padding: 10px; color: black; border-bottom: 1px solid #eee; cursor: pointer; text-align: left; }
+
+        .hearts { color: var(--danger); font-size: 0.9rem; margin-top: 3px; }
+    </style>
+</head>
+<body>
+
+    <div class="game-app">
+        <!-- 1st Screen -->
+        <div id="credit-screen" class="screen">
+            <h1 style="color: var(--primary); font-size: 2.5rem;">WELCOME!</h1>
+            <p style="margin: 20px 0; font-size: 1.2rem;">This game was made by</p>
+            <h2 style="font-size: 2rem; color: var(--gold);">Karam Rami</h2>
+            <button class="btn" style="width: 150px; margin-top: 30px;" onclick="showNames()">DONE</button>
+        </div>
+
+        <!-- 2nd Screen -->
+        <div id="name-screen" class="screen hidden">
+            <h1 style="margin-bottom: 20px;">ENTER NAMES</h1>
+            <input type="text" id="p1-in" class="input-field" style="width: 80%" placeholder="Player 1 Name">
+            <input type="text" id="p2-in" class="input-field" style="width: 80%" placeholder="Player 2 Name">
+            <button class="btn" style="width: 200px;" onclick="initGame()">START GAME</button>
+        </div>
+
+        <!-- Header -->
+        <div class="header-ui">
+            <div id="p0-ui" class="p-box active">
+                <div id="p0-name">P1</div>
+                <div id="p0-score">0</div>
+                <div class="hearts" id="p0-lives">❤️❤️❤️</div>
+            </div>
+            <div class="timer-circle" id="timer-txt">30</div>
+            <div id="p1-ui" class="p-box">
+                <div id="p1-name">P2</div>
+                <div id="p1-score">0</div>
+                <div class="hearts" id="p1-lives">❤️❤️❤️</div>
+            </div>
+        </div>
+
+        <!-- Formation Pitch -->
+        <div class="pitch-container">
+            <div class="pitch" id="pitch-area">
+                <div class="pitch-lines"></div>
+                <div class="center-circle"></div>
+                <!-- Logos will be placed here -->
+            </div>
+            <div id="suggestions"></div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer-ui">
+            <div id="turn-txt" style="text-align: center; color: var(--primary); font-size: 0.8rem; margin-bottom: 5px;"></div>
+            <input type="text" id="ans-in" class="input-field" placeholder="Type National Team..." autocomplete="off">
+            <button class="btn" onclick="submitAnswer()">SUBMIT ANSWER</button>
+        </div>
+
+        <!-- Result Screen -->
+        <div id="result-screen" class="screen hidden">
+            <h1 id="win-msg">MATCH OVER!</h1>
+            <div id="final-stats" style="margin: 20px 0; font-size: 1.2rem; line-height: 2;"></div>
+            <button class="btn" style="width: 200px;" onclick="location.reload()">REMATCH</button>
+        </div>
+    </div>
+
+    <script>
+        // LOGO DATABASE
+        const LOGOS = {
+            "Real Madrid": "https://upload.wikimedia.org/wikipedia/en/thumb/5/56/Real_Madrid_CF.svg/120px-Real_Madrid_CF.svg.png",
+            "Barcelona": "https://upload.wikimedia.org/wikipedia/en/thumb/4/47/FC_Barcelona_%28crest%29.svg/120px-FC_Barcelona_%28crest%29.svg.png",
+            "Man City": "https://upload.wikimedia.org/wikipedia/en/thumb/e/eb/Manchester_City_FC_badge.svg/120px-Manchester_City_FC_badge.svg.png",
+            "Man Utd": "https://upload.wikimedia.org/wikipedia/en/thumb/7/7a/Manchester_United_FC_crest.svg/120px-Manchester_United_FC_crest.svg.png",
+            "Liverpool": "https://upload.wikimedia.org/wikipedia/en/thumb/0/0c/Liverpool_FC.svg/120px-Liverpool_FC.svg.png",
+            "Arsenal": "https://upload.wikimedia.org/wikipedia/en/thumb/5/33/Arsenal_FC.svg/120px-Arsenal_FC.svg.png",
+            "Chelsea": "https://upload.wikimedia.org/wikipedia/en/thumb/c/cc/Chelsea_FC.svg/120px-Chelsea_FC.svg.png",
+            "Bayern": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1b/FC_Bayern_M%C3%BCnchen_logo_%282017%29.svg/120px-FC_Bayern_M%C3%BCnchen_logo_%282017%29.svg.png",
+            "PSG": "https://upload.wikimedia.org/wikipedia/en/thumb/a/a7/Paris_Saint-Germain_F.C..svg/120px-Paris_Saint-Germain_F.C..svg.png",
+            "Milan": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d0/AC_Milan_logo.svg/120px-AC_Milan_logo.svg.png",
+            "Inter": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/05/FC_Internazionale_Milano_2021.svg/120px-FC_Internazionale_Milano_2021.svg.png",
+            "Juve": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/bc/Juventus_FC_2017_icon_%28black%29.svg/120px-Juventus_FC_2017_icon_%28black%29.svg.png",
+            "Tottenham": "https://upload.wikimedia.org/wikipedia/en/thumb/b/b4/Tottenham_Hotspur.svg/120px-Tottenham_Hotspur.svg.png",
+            "Atletico": "https://upload.wikimedia.org/wikipedia/en/thumb/f/f4/Atletico_Madrid_2017_logo.svg/120px-Atletico_Madrid_2017_logo.svg.png",
+            "Ahli": "https://upload.wikimedia.org/wikipedia/en/thumb/0/0b/Al-Ahli_Saudi_FC_logo.svg/120px-Al-Ahli_Saudi_FC_logo.svg.png",
+            "Nassr": "https://upload.wikimedia.org/wikipedia/en/thumb/0/05/Al_Nassr_FC_logo.svg/120px-Al_Nassr_FC_logo.svg.png",
+            "Hilal": "https://upload.wikimedia.org/wikipedia/en/thumb/b/be/Al-Hilal_Saudi_FC_logo.svg/120px-Al-Hilal_Saudi_FC_logo.svg.png",
+            "Ahly": "https://upload.wikimedia.org/wikipedia/en/thumb/a/af/Al_Ahly_SC_logo.svg/120px-Al_Ahly_SC_logo.svg.png",
+            "Leverkusen": "https://upload.wikimedia.org/wikipedia/en/thumb/5/59/Bayer_04_Leverkusen_logo.svg/120px-Bayer_04_Leverkusen_logo.svg.png",
+            "Lyon": "https://upload.wikimedia.org/wikipedia/en/thumb/c/c6/Olympique_Lyonnais_crest.svg/120px-Olympique_Lyonnais_crest.svg.png",
+            "Monaco": "https://upload.wikimedia.org/wikipedia/en/thumb/9/9e/AS_Monaco_FC.svg/120px-AS_Monaco_FC.svg.png",
+            "Everton": "https://upload.wikimedia.org/wikipedia/en/thumb/7/7c/Everton_FC_logo.svg/120px-Everton_FC_logo.svg.png",
+            "West Ham": "https://upload.wikimedia.org/wikipedia/en/thumb/c/c2/West_Ham_United_FC_logo.svg/120px-West_Ham_United_FC_logo.svg.png",
+            "Aston Villa": "https://upload.wikimedia.org/wikipedia/en/thumb/f/f9/Aston_Villa_FC_crest_%282024%29.svg/120px-Aston_Villa_FC_crest_%282024%29.svg.png",
+            "Miami": "https://upload.wikimedia.org/wikipedia/en/thumb/5/5c/Inter_Miami_CF_logo.svg/120px-Inter_Miami_CF_logo.svg.png",
+            "Napoli": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2d/SSC_Napoli_2021.svg/120px-SSC_Napoli_2021.svg.png",
+            "Roma": "https://upload.wikimedia.org/wikipedia/en/thumb/f/f7/AS_Roma_logo_%282017%29.svg/120px-AS_Roma_logo_%282017%29.svg.png",
+            "Villareal": "https://upload.wikimedia.org/wikipedia/en/thumb/7/70/Villarreal_CF_logo.svg/120px-Villarreal_CF_logo.svg.png",
+            "Sunderland": "https://upload.wikimedia.org/wikipedia/en/thumb/7/77/Sunderland_AFC_logo.svg/120px-Sunderland_AFC_logo.svg.png",
+            "Como": "https://upload.wikimedia.org/wikipedia/en/thumb/d/d4/Como_1907_logo.svg/120px-Como_1907_logo.svg.png",
+            "River Plate": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ac/Escudo_del_C_A_River_Plate.svg/120px-Escudo_del_C_A_River_Plate.svg.png",
+            "Benfica": "https://upload.wikimedia.org/wikipedia/en/thumb/a/a2/SL_Benfica_logo.svg/120px-SL_Benfica_logo.svg.png",
+            "Lille": "https://upload.wikimedia.org/wikipedia/en/thumb/3/3f/Lille_OSC_2018_logo.svg/120px-Lille_OSC_2018_logo.svg.png",
+            "SCP": "https://upload.wikimedia.org/wikipedia/en/thumb/e/e1/Sporting_Clube_de_Portugal_%28logo%29.svg/120px-Sporting_Clube_de_Portugal_%28logo%29.svg.png",
+            "Brighton": "https://upload.wikimedia.org/wikipedia/en/thumb/f/fd/Brighton_%26_Hove_Albion_logo.svg/120px-Brighton_%26_Hove_Albion_logo.svg.png",
+            "Eintracht": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/04/Eintracht_Frankfurt_Logo.svg/120px-Eintracht_Frankfurt_Logo.svg.png"
+        };
+
+        const QUESTIONS = [
+            { team: "Senegal", clubs: ["Ahli", "Hilal", "Lyon", "Everton", "West Ham", "Monaco", "Tottenham", "Villareal", "Nassr", "Bayern", "Everton"] },
+            { team: "Argentina", clubs: ["Aston Villa", "Atletico", "Tottenham", "River Plate", "Lyon", "Liverpool", "Chelsea", "Atletico", "Miami", "Inter", "Como"] },
+            { team: "France", clubs: ["Milan", "Arsenal", "Bayern", "Real Madrid", "Milan", "PSG", "Real Madrid", "Real Madrid", "PSG", "Inter", "Bayern"] },
+            { team: "England", clubs: ["Everton", "Man City", "Man City", "Arsenal", "Aston Villa", "Arsenal", "Real Madrid", "Chelsea", "Man City", "Bayern", "Aston Villa"] },
+            { team: "Morocco", clubs: ["Hilal", "PSG", "Man Utd", "Real Madrid", "Leverkusen", "Monaco", "Villareal", "Nassr", "Galatasaray", "Fenerbahce", "Real Madrid"] },
+            { team: "Spain", clubs: ["Arsenal", "Real Madrid", "Man City", "Barcelona", "Barcelona", "PSG", "Sociedad", "Milan", "Barcelona", "Leipzig", "Chelsea"] },
+            { team: "Brazil", clubs: ["Man City", "Real Madrid", "Arsenal", "PSG", "Juve", "Newcastle", "Monaco", "West Ham", "Real Madrid", "Real Madrid", "Barcelona"] },
+            { team: "Portugal", clubs: ["Al-Hilal", "Man City", "Man Utd", "PSG", "Milan", "PSG", "Man City", "Nassr", "Bayern", "Liverpool", "Juve"] },
+            { team: "Germany", clubs: ["Barcelona", "Real Madrid", "Bayern", "Leverkusen", "Arsenal", "Bayern", "Bayern", "Leverkusen", "West Ham", "Dortmund", "Stuttgart"] },
+            { team: "Italy", clubs: ["PSG", "Arsenal", "Tottenham", "Inter", "Juve", "Inter", "Napoli", "Inter", "Atalanta", "Juve", "Roma"] },
+            { team: "Netherlands", clubs: ["Brighton", "Liverpool", "Bayern", "Man Utd", "Arsenal", "Leverkusen", "Milan", "Girona", "Liverpool", "Liverpool", "Man Utd"] },
+            { team: "Egypt", clubs: ["Ahly", "Nice", "Ahly", "Al-Wahda", "Ahly", "Frankfurt", "Ahly", "Trabzonspor", "Liverpool", "Nantes", "Ahly"] },
+            { team: "Saudi Arabia", clubs: ["Hilal", "Nassr", "Hilal", "Ahli", "Nassr", "Hilal", "Hilal", "Ahli", "Hilal", "Nassr", "Hilal"] },
+            { team: "Uruguay", clubs: ["Inter", "Barcelona", "Atletico", "Napoli", "PSG", "Real Madrid", "Tottenham", "Liverpool", "Man Utd", "Flamengo", "Miami"] },
+            { team: "Belgium", clubs: ["Real Madrid", "Man City", "Arsenal", "Aston Villa", "Leipzig", "Everton", "Man City", "Roma", "Rennes", "Lyon", "Milan"] },
+            { team: "Croatia", clubs: ["Fenerbahce", "Man City", "Ajax", "Lyon", "Man City", "Real Madrid", "Chelsea", "Atalanta", "Benfica", "Hoffenheim", "Osasuna"] },
+            { team: "Turkey", clubs: ["Man Utd", "Juve", "Galatasaray", "Benfica", "Real Madrid", "Inter", "Benfica", "Dortmund", "Lille", "Fenerbahce", "Bournemouth"] },
+            { team: "Japan", clubs: ["Parma", "Arsenal", "Monaco", "Gladbach", "Sociedad", "Liverpool", "Brighton", "Dortmund", "Lazio", "Feyenoord", "Celtic"] },
+            { team: "USA", clubs: ["Forest", "Juve", "Lyon", "PSV", "Milan", "Juve", "Monaco", "PSV", "Coventry", "Haji", "Norwich"] },
+            { team: "Norway", clubs: ["Sevilla", "Arsenal", "Napoli", "Benfica", "Man City", "Atletico", "Dortmund", "Celta", "Leipzig", "Sociedad", "Man City"] }
+        ];
+
+        // Formation Positions
+        const POS = [
+            { t: 82, l: 45 }, // GK
+            { t: 65, l: 15 }, { t: 68, l: 35 }, { t: 68, l: 55 }, { t: 65, l: 75 }, // DEF
+            { t: 45, l: 25 }, { t: 42, l: 45 }, { t: 45, l: 65 }, // MID
+            { t: 18, l: 20 }, { t: 12, l: 45 }, { t: 18, l: 70 }  // FW
+        ];
+
+        let players = [{ name: "P1", score: 0, lives: 3 }, { name: "P2", score: 0, lives: 3 }];
+        let currentP = 0, round = 0, timeLeft = 30, timer;
+
+        function showNames() {
+            document.getElementById('credit-screen').classList.add('hidden');
+            document.getElementById('name-screen').classList.remove('hidden');
+        }
+
+        function initGame() {
+            const n1 = document.getElementById('p1-in').value.trim();
+            const n2 = document.getElementById('p2-in').value.trim();
+            if (n1) players[0].name = n1;
+            if (n2) players[1].name = n2;
+            document.getElementById('p0-name').innerText = players[0].name;
+            document.getElementById('p1-name').innerText = players[1].name;
+            document.getElementById('name-screen').classList.add('hidden');
+            loadRound();
+        }
+
+        function loadRound() {
+            if (round >= 20 || (players[0].lives <= 0 && players[1].lives <= 0)) { endGame(); return; }
+            if (players[currentP].lives <= 0) { switchTurn(); return; }
+
+            const pitch = document.getElementById('pitch-area');
+            pitch.querySelectorAll('.player-node').forEach(n => n.remove());
+
+            const level = QUESTIONS[round];
+            level.clubs.forEach((club, i) => {
+                const node = document.createElement('div');
+                node.className = 'player-node';
+                node.style.top = POS[i].t + '%';
+                node.style.left = POS[i].l + '%';
+                
+                const url = LOGOS[club];
+                if(url) {
+                    const img = document.createElement('img');
+                    img.src = url;
+                    img.onerror = () => { node.innerHTML = `<span>${club}</span>`; };
+                    node.appendChild(img);
+                } else {
+                    node.innerHTML = `<span>${club}</span>`;
+                }
+                pitch.appendChild(node);
+            });
+
+            document.getElementById('turn-txt').innerText = `ITS YOUR TURN: ${players[currentP].name}`;
+            timeLeft = 30;
+            updateUI();
+            startTimer();
+        }
+
+        function startTimer() {
+            clearInterval(timer);
+            timer = setInterval(() => {
+                timeLeft--;
+                document.getElementById('timer-txt').innerText = timeLeft;
+                if (timeLeft <= 0) handleWrong();
+            }, 1000);
+        }
+
+        function submitAnswer() {
+            const input = document.getElementById('ans-in').value.trim().toLowerCase();
+            const correct = QUESTIONS[round].team.toLowerCase();
+            if (input === correct) {
+                players[currentP].score += (10 + timeLeft);
+                switchTurn();
+            } else {
+                handleWrong();
+            }
+        }
+
+        function handleWrong() {
+            players[currentP].lives--;
+            alert(`WRONG! The Answer was: ${QUESTIONS[round].team}`);
+            switchTurn();
+        }
+
+        function switchTurn() {
+            clearInterval(timer);
+            round++;
+            currentP = (currentP === 0) ? 1 : 0;
+            document.getElementById('ans-in').value = '';
+            loadRound();
+        }
+
+        function updateUI() {
+            document.getElementById('p0-score').innerText = players[0].score;
+            document.getElementById('p1-score').innerText = players[1].score;
+            document.getElementById('p0-lives').innerText = "❤️".repeat(Math.max(0, players[0].lives)) + "🖤".repeat(3 - Math.max(0, players[0].lives));
+            document.getElementById('p1-lives').innerText = "❤️".repeat(Math.max(0, players[1].lives)) + "🖤".repeat(3 - Math.max(0, players[1].lives));
+            document.getElementById('p0-ui').className = currentP === 0 ? "p-box active" : "p-box";
+            document.getElementById('p1-ui').className = currentP === 1 ? "p-box active" : "p-box";
+        }
+
+        function endGame() {
+            clearInterval(timer);
+            document.getElementById('result-screen').classList.remove('hidden');
+            let winner = players[0].score > players[1].score ? players[0].name : players[1].name;
+            if(players[0].score === players[1].score) winner = "DRAW!";
+            document.getElementById('win-msg').innerText = winner + " WINS!";
+            document.getElementById('final-stats').innerHTML = 
+                `${players[0].name}: ${players[0].score} pts<br>${players[1].name}: ${players[1].score} pts`;
+        }
+
+        // Suggestions
+        const inputField = document.getElementById('ans-in');
+        const sugBox = document.getElementById('suggestions');
+        const allTeams = QUESTIONS.map(q => q.team);
+
+        inputField.oninput = () => {
+            const val = inputField.value.toLowerCase();
+            sugBox.innerHTML = '';
+            if (!val) { sugBox.style.display = 'none'; return; }
+            const matches = allTeams.filter(t => t.toLowerCase().startsWith(val));
+            if (matches.length > 0) {
+                sugBox.style.display = 'block';
+                matches.forEach(m => {
+                    const d = document.createElement('div');
+                    d.className = 'sug-item'; d.innerText = m;
+                    d.onclick = () => { inputField.value = m; sugBox.style.display = 'none'; submitAnswer(); };
+                    sugBox.appendChild(d);
+                });
+            } else sugBox.style.display = 'none';
+        };
+        inputField.onkeypress = (e) => { if(e.key === 'Enter') submitAnswer(); };
+    </script>
+</body>
+</html>
